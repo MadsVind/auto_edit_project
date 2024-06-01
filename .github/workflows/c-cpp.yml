@@ -13,10 +13,15 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+    - name: Setup vcpkg
+      uses: lukka/run-vcpkg@v6
+      with:
+        vcpkgArguments: 'cpr nlohmann-json curl'
+        vcpkgDirectory: '${{ runner.workspace }}/vcpkg/'
     - name: Create Build Directory
       run: mkdir build
     - name: CMake
-      run: cmake -S . -B build
+      run: cmake -S . -B build -DCMAKE_TOOLCHAIN_FILE=${{ runner.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake
     - name: Build
       run: cmake --build build
     - name: Test
