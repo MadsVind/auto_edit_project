@@ -19,9 +19,6 @@ jobs:
         vcpkgArguments: 'cpr nlohmann-json curl'
         vcpkgDirectory: '${{ runner.workspace }}/vcpkg/'
         vcpkgGitCommitId: '47364fb'  
-    - name: Install dependencies
-      run: |
-        ./vcpkg/vcpkg install cpr nlohmann-json curl
     - name: Create Build Directory
       run: mkdir build
     - name: CMake
