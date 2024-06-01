@@ -16,8 +16,9 @@ jobs:
     - name: Setup vcpkg
       uses: lukka/run-vcpkg@v6
       with:
-        setupOnly: true
+        vcpkgArguments: 'cpr nlohmann-json curl'
         vcpkgDirectory: '${{ runner.workspace }}/vcpkg/'
+        vcpkgGitCommitId: '47364fb'  
     - name: Install dependencies
       run: |
         ./vcpkg/vcpkg install cpr nlohmann-json curl
