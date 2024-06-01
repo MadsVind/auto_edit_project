@@ -11,13 +11,13 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 # Set the prefix path for finding libraries
-set(CMAKE_PREFIX_PATH "/home/vind/doc/vcpkg/installed/x64-linux/lib;/home/vind/doc/vcpkg/installed/x64-linux/share")
+set(CMAKE_PREFIX_PATH "${CMAKE_HOME_DIRECTORY}/../doc/vcpkg/installed/x64-linux/lib;${CMAKE_HOME_DIRECTORY}/../docs/vcpkg/installed/x64-linux/share")
 
 # Set the toolchain file for vcpkg
-set(CMAKE_TOOLCHAIN_FILE "/home/vind/doc/vcpkg/scripts/buildsystems/vcpkg.cmake")
+set(CMAKE_TOOLCHAIN_FILE "${CMAKE_HOME_DIRECTORY}/../doc/vcpkg/scripts/buildsystems/vcpkg.cmake")
 
 # Set the root directory for finding ZLIB library
-set(ZLIB_ROOT "/home/vind/doc/vcpkg/installed/x64-linux")
+set(ZLIB_ROOT "${CMAKE_HOME_DIRECTORY}/../doc/vcpkg/installed/x64-linux")
 
 # Set the policy for handling if() command behavior
 if(POLICY CMP0074)
@@ -33,8 +33,7 @@ set(CURL_LIBRARY "-lcurl")
 find_package(CURL REQUIRED)
 
 # Add the link directories
-link_directories(/home/vind/doc/vcpkg/installed/x64-linux/lib)
-
+link_directories("${CMAKE_HOME_DIRECTORY}/../doc/vcpkg/installed/x64-linux/lib")
 # Include the source directory
 include_directories(${CMAKE_SOURCE_DIR}/include/src)
 
