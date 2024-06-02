@@ -1,4 +1,4 @@
-#ifndef  CREDENTIAL_ENCRYPTION_HPP
+#ifndef CREDENTIAL_ENCRYPTION_HPP
 #define CREDENTIAL_ENCRYPTION_HPP
 
 #include <cpr/cpr.h>

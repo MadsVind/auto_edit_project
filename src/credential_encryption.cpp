@@ -26,8 +26,12 @@ std::string CredentialEncryption::readDecryptedFromFile(const std::string& key, 
     nlohmann::json j;
     file >> j;
     file.close();
-
-    std::string encrypted_value = j[key];
+    std::string encrypted_value;
+    try {
+        encrypted_value = j[key];
+    } catch(const std::exception& e) {
+        return "";
+    }
 
     std::string client_value;
     for (char c : encrypted_value) {

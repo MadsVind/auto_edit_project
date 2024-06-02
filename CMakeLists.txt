@@ -1,5 +1,3 @@
-# FILEPATH: /home/vind/auto_edit_project/CMakeLists.txt
-
 # Set the minimum required version of CMake
 cmake_minimum_required(VERSION 3.10)
 
@@ -10,8 +8,13 @@ project(auto_edit VERSION 1.0.0)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
+# Enable testing
+enable_testing()
+
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
+
 # Set the prefix path for finding libraries
-set(CMAKE_PREFIX_PATH "${CMAKE_HOME_DIRECTORY}/../doc/vcpkg/installed/x64-linux/lib;${CMAKE_HOME_DIRECTORY}/../docs/vcpkg/installed/x64-linux/share")
+set(CMAKE_PREFIX_PATH "${CMAKE_HOME_DIRECTORY}/../doc/vcpkg/installed/x64-linux/lib;${CMAKE_HOME_DIRECTORY}/../doc/vcpkg/installed/x64-linux/share")
 
 # Set the toolchain file for vcpkg
 set(CMAKE_TOOLCHAIN_FILE "${CMAKE_HOME_DIRECTORY}/../doc/vcpkg/scripts/buildsystems/vcpkg.cmake")
@@ -34,8 +37,14 @@ find_package(CURL REQUIRED)
 
 # Add the link directories
 link_directories("${CMAKE_HOME_DIRECTORY}/../doc/vcpkg/installed/x64-linux/lib")
-# Include the source directory
-include_directories(${CMAKE_SOURCE_DIR}/include/src)
+
+# Include the directories
+include_directories("include")
+file(GLOB_RECURSE ALL_INCLUDE_DIRS RELATIVE ${CMAKE_SOURCE_DIR} "include/*")
+foreach(DIR ${ALL_INCLUDE_DIRS})
+    get_filename_component(DIR_PATH ${DIR} PATH)
+    include_directories(${DIR_PATH})
+endforeach()
 
 # Get a list of all source files in the src directory and its subdirectories
 file(GLOB_RECURSE SOURCES "src/*.cpp")
@@ -46,5 +55,16 @@ list(APPEND SOURCES "main.cpp")
 # Add an executable that is built from the source files
 add_executable(auto_edit ${SOURCES})
 
+add_subdirectory(test)
+
 # Link the required libraries to the executable
 target_link_libraries(auto_edit PRIVATE cpr nlohmann_json::nlohmann_json CURL::libcurl)
+
+# Add a custom target that builds and runs everything
+add_custom_target(run_everything ALL
+                  COMMAND ${CMAKE_COMMAND} --build . --target auto_edit_tests
+                  COMMAND ctest -C $<CONFIGURATION>
+                  COMMENT "Building and running everything")
+
+# Add a dependency from `auto_edit` to `run_everything`
+add_dependencies(auto_edit run_everything)
