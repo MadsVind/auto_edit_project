@@ -1,10 +1,4 @@
-#include <iostream>
-#include <cpr/cpr.h>
-#include <nlohmann/json.hpp>
-#include <fstream>
-#include <string>
-#include <credential_encryption.hpp>
-#include <twitch_api.hpp>
+#include "main.hpp"
 
 // Function to download the clip
 void downloadClip(const std::string& url, const std::string& file_name) {
