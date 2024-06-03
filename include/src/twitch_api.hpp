@@ -11,9 +11,6 @@
 
 class TwitchApi {
    public:
-    void setClientID(const std::string& client_id) { this->client_id = client_id; }
-    void setClientSecret(const std::string& client_secret) { this->client_secret = client_secret; }
-
     /**
      * Retrieves the OAuth token from the Twitch API.
      *
@@ -46,17 +43,6 @@ class TwitchApi {
      * @throws std::runtime_error if the clip URLs cannot be obtained.
      */
     std::vector<std::string> getTopClipsInTimeSpan(const std::string& access_token, const std::string& client_id, const std::string& game_id, const int& hours);
-
-    /**
-     * Retrieves the download URL for a Twitch clip.
-     *
-     * @param access_token The access token.
-     * @param client_id The client ID.
-     * @param clip_id The clip ID.
-     * @return The download URL.
-     * @throws std::runtime_error if the clip download URL cannot be obtained.
-     */
-    std::string getClipDownloadUrl(const std::string& access_token, const std::string& client_id, const std::string& clip_id);
 };
 
 

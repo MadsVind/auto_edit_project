@@ -35,12 +35,8 @@ int main() {
     std::map<std::string, std::string>::iterator game_it = top_games.begin();
     std::advance(game_it, game_index);
 
-    std::vector<std::string> clip_urls = ta.getTopClipsInTimeSpan(client_id, client_secret,  "32399", hours);
+    std::vector<std::string> clip_urls = ta.getTopClipsInTimeSpan(access_token, client_id,  game_it->second, hours);
 
-//  std::string clip_download_url = ta.getClipDownloadUrl(access_token, client_id, clip_id);
-    
-    // Step 3: Download the Clip
-    //downloadClip(clip_download_url, output_file_name );
     downloadClip(clip_urls[0], output_file_name );
 
     std::cout << "Clip downloaded successfully!" << "\n";
