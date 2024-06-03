@@ -10,10 +10,10 @@ void downloadClip(const std::string& url, const std::string& file_name) {
 
 int main() {
     const std::string clip_id = "ProtectiveDeadVultureAliens-r5smm8hR4m60iJmX";
-    
     const std::string encryption_key = "simple_key";
     const std::string filename = "../credentials.txt";
     const std::string output_file_name = "twitch_clip.mp4";
+    const int hours = 24*7;
 
     CredentialEncryption ce;
     const std::string client_id     = ce.readDecryptedFromFile("client_id", encryption_key , filename);
@@ -21,11 +21,28 @@ int main() {
 
     TwitchApi ta;
     std::string access_token = ta.getOAuthToken(client_id, client_secret);
-    std::string clip_download_url = ta.getClipDownloadUrl(access_token, client_id, clip_id);
+    std::map<std::string, std::string> top_games = ta.getTopGames(access_token, client_id, 10);
+
+    int i = 0;
+    for (const auto& game : top_games) {
+        std::cout << i << ": " << game.first << "\n";
+        i++;
+    }
+    std::cout << "Enter the index of the game you want to download clips from: ";
+    int game_index;
+    std::cin >> game_index;
+
+    std::map<std::string, std::string>::iterator game_it = top_games.begin();
+    std::advance(game_it, game_index);
+
+    std::vector<std::string> clip_urls = ta.getTopClipsInTimeSpan(client_id, client_secret,  "32399", hours);
+
+//  std::string clip_download_url = ta.getClipDownloadUrl(access_token, client_id, clip_id);
     
     // Step 3: Download the Clip
-    downloadClip(clip_download_url, output_file_name );
+    //downloadClip(clip_download_url, output_file_name );
+    downloadClip(clip_urls[0], output_file_name );
 
-    std::cout << "Clip downloaded successfully!" << std::endl;
+    std::cout << "Clip downloaded successfully!" << "\n";
     return 0;
 }

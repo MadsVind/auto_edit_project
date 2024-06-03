@@ -8,5 +8,7 @@
 #include <string>
 #include <twitch_api.hpp>
 #include <credential_encryption.hpp>
+#include <vector>
+#include <map>
 
 #endif
