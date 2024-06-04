@@ -19,6 +19,8 @@ jobs:
         vcpkgArguments: 'cpr nlohmann-json curl'
         vcpkgDirectory: '${{ runner.workspace }}/doc/vcpkg/'  # Adjusted this line
         vcpkgGitCommitId: '47364fb'  
+    - name: Install FFmpeg
+      run: sudo apt-get update && sudo apt-get install -y ffmpeg
     - name: Create Build Directory
       run: mkdir build
     - name: CMake
