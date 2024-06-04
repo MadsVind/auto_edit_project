@@ -1,6 +1,5 @@
 #include "app.hpp"
 
-const int CLIP_AMOUNT = 10;
 const int HOURS_IN_DAY = 24;
 
 void clearConsole() {
@@ -50,7 +49,7 @@ void App::downloadClip(const std::string& url, const std::string& file_name) {
     file.close();
 }
 
-void App::setGame() {
+void App::queryGame() {
     std::map<std::string, std::string> top_games = twitch_con.getTopGames(10);
 
     int i = 0;
