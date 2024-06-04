@@ -60,9 +60,8 @@ void App::menu() {
     std::cout << "5. Build Video\n";
     std::cout << "6. Exit\n";
 
-    int choice;
     std::cout << ">> ";
-    std::cin >> choice;
+    int choice = queryInt();
 
     switch (choice) {
     case 1:

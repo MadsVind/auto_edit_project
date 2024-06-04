@@ -10,6 +10,10 @@
 #include <iostream>
 
 class TwitchApi {
+   private:
+    std::string access_token;
+    std::string client_id;
+    std::string client_secret;
    public:
     TwitchApi(const std::string& client_id, const std::string& client_secret) : client_id(client_id), client_secret(client_secret) {
         initOAuthToken();
@@ -38,10 +42,6 @@ class TwitchApi {
      * @throws std::runtime_error if the clip URLs cannot be obtained.
      */
     std::vector<std::string> getTopClipsInTimeSpan(const std::string& game_id, const int& hours, const int& clip_amount);
-   private:
-    std::string access_token;
-    std::string client_id;
-    std::string client_secret;
 };
 
 #endif 
