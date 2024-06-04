@@ -57,7 +57,8 @@ void App::menu() {
     std::cout << "2. Set Clip Amount\n";
     std::cout << "3. Set Clip Time Span\n";
     std::cout << "4. Chose Clips\n";
-    std::cout << "5. Exit\n";
+    std::cout << "5. Build Video\n";
+    std::cout << "6. Exit\n";
 
     int choice;
     std::cout << ">> ";
@@ -77,6 +78,9 @@ void App::menu() {
         choseClips();
         break;
     case 5:
+        buildVideo();
+        break;
+    case 6:
         deleteAllFilesInFolder("clips/");
         exit(0);
         break;
@@ -185,3 +189,27 @@ void App::choseClips() {
     }
 }
 
+void App::buildVideo() {
+    const std::string path = "clips/";
+    const std::string output_file_name = "output.mp4";
+    checkAndCreateDirectory(path);
+
+    std::vector<VideoEditor> clips;
+    for (const auto& entry : std::filesystem::directory_iterator(path)) {
+        if (entry.is_regular_file()) {
+            std::filesystem::path filePath = entry.path();
+            std::string directory = filePath.parent_path().string() + "/";
+            std::string fileName = filePath.filename().string();
+            clips.push_back(VideoEditor(directory, fileName));
+        }
+    }
+
+    if (clips.empty()) {
+        std::cout << "No clips found in the clips folder!" << "\n";
+        return;
+    }
+
+    VideoEditor video = clips[0];
+    clips.erase(clips.begin());
+    video.appendVideos(clips, path + output_file_name);
+}

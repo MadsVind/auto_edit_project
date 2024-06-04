@@ -93,6 +93,16 @@ class App {
     void choseClips();
 
     /**
+     * @brief Builds a video.
+     * 
+     * This function is responsible for building a video.
+     * It performs the necessary operations to create a video.
+     * 
+     * @return void
+     */
+    void buildVideo();
+
+    /**
      * @brief Queries the user for the desired clip amount.
      */
     void queryClipAmount(); 
