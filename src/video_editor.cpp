@@ -28,29 +28,28 @@ std::string formatTime(double milliseconds) {
     return oss.str();
 }
 
-void VideoEditor::trimVideo(double startMillisecond, double endMillisecond) const {
-    // Get the duration of the video in milliseconds
+double VideoEditor::getVideoLength() const {
     std::string command = "ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 " + filePath + fileName;
     std::string durationStr = exec(command.c_str());
-    double duration = std::stod(durationStr) * 1000; // convert to milliseconds
+    double duration = std::stod(durationStr); // Duration in seconds
+    return duration * 1000; // Convert to milliseconds
+}
 
-    // Check if the start and end milliseconds are within the duration of the video
+void VideoEditor::trimVideo(double startMillisecond, double endMillisecond) const {
+    double duration = getVideoLength(); 
+
     if (startMillisecond < 0 || endMillisecond > duration || startMillisecond >= endMillisecond) {
         throw std::invalid_argument("Invalid start or end millisecond");
     }
-
-    // Convert milliseconds to the format HH:MM:SS.mmm
     std::string startStr = formatTime(startMillisecond);
     std::string endStr = formatTime(endMillisecond);
 
     std::string tempFileName = filePath + "temp_" + fileName;
-    command = "ffmpeg -i " + filePath + fileName + " -ss " + startStr + " -to " + endStr + " -c copy " + tempFileName + " -y";
+    std::string command = "ffmpeg -i " + filePath + fileName + " -ss " + startStr + " -to " + endStr + " -c copy " + tempFileName + " -y";
     int result = system(command.c_str());
     if (result != 0) {
         throw std::runtime_error("Failed to trim video");
     }
-
-    // Replace the original file with the new one
     command = "mv " + tempFileName + " " + filePath + fileName;
     result = system(command.c_str());
     if (result != 0) {

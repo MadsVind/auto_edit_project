@@ -9,6 +9,9 @@
 #include <twitch_api.hpp>
 #include <vector>
 #include <map>
+#include <thread>
+#include <sys/stat.h>
+#include <video_editor.hpp>
 
 /**
  * @brief The App class represents an application that interacts with the Twitch API.

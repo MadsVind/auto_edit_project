@@ -35,6 +35,12 @@ public:
 
 
     /**
+     * @brief Get the length of the video.
+     * @return The length of the video in milliseconds.
+     */
+    double getVideoLength() const;
+
+    /**
      * @brief Trims the video from the specified start second to the specified end second.
      * @param startSecond The start second of the trimmed video.
      * @param endSecond The end second of the trimmed video.
