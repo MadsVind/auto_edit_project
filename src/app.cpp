@@ -24,7 +24,7 @@ void App::menu() {
 
     switch (choice) {
     case 1:
-        setGame();
+        queryGame();
         break;
     case 2:
         queryClipAmount();
