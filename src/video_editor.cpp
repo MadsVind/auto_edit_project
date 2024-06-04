@@ -1,6 +1,5 @@
 #include "video_editor.hpp"
 
-
 std::string exec(const char* cmd) {
     std::array<char, 128> buffer;
     std::string result;
@@ -14,19 +13,38 @@ std::string exec(const char* cmd) {
     return result;
 }
 
-void VideoEditor::trimVideo(int startSecond, int endSecond) const {
-    // Get the duration of the video
+std::string formatTime(double milliseconds) {
+    int hours = static_cast<int>(milliseconds) / 3600000;
+    milliseconds -= hours * 3600000;
+    int minutes = static_cast<int>(milliseconds) / 60000;
+    milliseconds -= minutes * 60000;
+    double seconds = milliseconds / 1000;
+
+    std::ostringstream oss;
+    oss << std::setfill('0') << std::setw(2) << hours << ":"
+        << std::setfill('0') << std::setw(2) << minutes << ":"
+        << std::fixed << std::setprecision(3) << seconds;
+
+    return oss.str();
+}
+
+void VideoEditor::trimVideo(double startMillisecond, double endMillisecond) const {
+    // Get the duration of the video in milliseconds
     std::string command = "ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 " + filePath + fileName;
     std::string durationStr = exec(command.c_str());
-    double duration = std::stod(durationStr);
+    double duration = std::stod(durationStr) * 1000; // convert to milliseconds
 
-    // Check if the start and end seconds are within the duration of the video
-    if (startSecond < 0 || endSecond > duration || startSecond >= endSecond) {
-        throw std::invalid_argument("Invalid start or end second");
+    // Check if the start and end milliseconds are within the duration of the video
+    if (startMillisecond < 0 || endMillisecond > duration || startMillisecond >= endMillisecond) {
+        throw std::invalid_argument("Invalid start or end millisecond");
     }
 
+    // Convert milliseconds to the format HH:MM:SS.mmm
+    std::string startStr = formatTime(startMillisecond);
+    std::string endStr = formatTime(endMillisecond);
+
     std::string tempFileName = filePath + "temp_" + fileName;
-    command = "ffmpeg -i " + filePath + fileName + " -ss " + std::to_string(startSecond) + " -to " + std::to_string(endSecond) + " -c copy " + tempFileName + " -y";
+    command = "ffmpeg -i " + filePath + fileName + " -ss " + startStr + " -to " + endStr + " -c copy " + tempFileName + " -y";
     int result = system(command.c_str());
     if (result != 0) {
         throw std::runtime_error("Failed to trim video");

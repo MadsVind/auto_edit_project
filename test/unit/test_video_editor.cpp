@@ -13,7 +13,7 @@ TEST_CASE("VideoEditor trims and appends videos correctly", "[VideoEditor]") {
     VideoEditor video1(videoPath.string(), "example1.mp4");
     VideoEditor video2(videoPath.string(), "example2.mp4");
 
-    video1.trimVideo(0, 2);
+    video1.trimVideo(0000, 2000);
 
     video1.appendVideos(video2, outputPath.string());
 
@@ -28,9 +28,9 @@ TEST_CASE("VideoEditor trims and appends videos correctly", "[VideoEditor]") {
 TEST_CASE("VideoEditor throws an error when trying to trim a video with invalid start or end second", "[VideoEditor]") {
     VideoEditor video(videoPath.string(), "example1.mp4");
 
-    REQUIRE_THROWS(video.trimVideo(-1, 2));
-    REQUIRE_THROWS(video.trimVideo(2, 1));
-    REQUIRE_THROWS(video.trimVideo(0, 10000));
+    REQUIRE_THROWS(video.trimVideo(-1000, 2000));
+    REQUIRE_THROWS(video.trimVideo(2000, 1000));
+    REQUIRE_THROWS(video.trimVideo(0, 10000000));
 }
 
 TEST_CASE("VideoEditor throws an error when trying to append a video that does not exist", "[VideoEditor]") {

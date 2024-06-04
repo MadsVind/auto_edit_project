@@ -8,6 +8,7 @@
 #include <unistd.h>
 #include <memory>
 #include <filesystem>
+#include <iomanip>
 
 /**
  * @class VideoEditor
@@ -38,7 +39,7 @@ public:
      * @param startSecond The start second of the trimmed video.
      * @param endSecond The end second of the trimmed video.
      */
-    void trimVideo(int startSecond, int endSecond) const;
+    void trimVideo(double startMillisecond, double endMillisecond) const;
 
     /**
      * @brief Appends multiple videos to the current video.
