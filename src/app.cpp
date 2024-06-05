@@ -1,92 +1,5 @@
 #include "app.hpp"
 
-const int HOURS_IN_DAY = 24;
-
-void clearConsole() {
-    try {
-        system("clear");
-    } catch (const std::exception& e) {
-        system("cls");
-    }
-}
-
-bool checkAndCreateDirectory(const std::string& dir) {
-    struct stat info;
-
-    if (stat(dir.c_str(), &info) != 0) {
-        if (mkdir(dir.c_str(), 0777) == -1) {
-            std::cerr << "Error :  " << strerror(errno) << std::endl;
-            return false;
-        }
-    } else if (!(info.st_mode & S_IFDIR)) {
-        std::cerr << dir << " is not a directory" << std::endl;
-        return false;
-    }
-
-    return true;
-}
-
-int queryInt() {
-    std::string input;
-    std::getline(std::cin, input);
-    std::cin.ignore();
-    if (input.empty()) {
-        return -1;
-    } else {
-        try {
-            int integer = std::stoi(input);
-            return integer;
-        } catch (std::invalid_argument&) {
-            std::cout << "Invalid input. Please enter an integer.\n>> ";
-            return queryInt();
-        }
-    }
-}
-
-void deleteAllFilesInFolder(const std::string& folderPath) {
-    for (const auto& entry : std::filesystem::directory_iterator(folderPath)) {
-        if (entry.is_regular_file()) {
-            std::filesystem::remove(entry);
-        }
-    }
-}
-
-void App::menu() {
-    clearConsole();
-    std::cout << "1. Set Game\n";
-    std::cout << "2. Set Clip Amount\n";
-    std::cout << "3. Set Clip Time Span\n";
-    std::cout << "4. Chose Clips\n";
-    std::cout << "5. Build Video\n";
-    std::cout << "6. Exit\n";
-
-    std::cout << ">> ";
-    int choice = queryInt();
-
-    switch (choice) {
-    case 1:
-        queryGame();
-        break;
-    case 2:
-        queryClipAmount();
-        break;
-    case 3:
-        queryClipTimeSpan();
-        break;
-    case 4:
-        choseClips();
-        break;
-    case 5:
-        buildVideo();
-        break;
-    case 6:
-        deleteAllFilesInFolder("clips/");
-        exit(0);
-        break;
-    }
-    menu();
-}
-
 void App::downloadClip(const std::string& url, const std::string& file_name) {
     cpr::Response r = cpr::Get(cpr::Url{url});
     std::ofstream file(file_name, std::ios::binary);
@@ -94,35 +7,57 @@ void App::downloadClip(const std::string& url, const std::string& file_name) {
     file.close();
 }
 
-void App::queryGame() {
-    std::map<std::string, std::string> top_games = twitch_con.getTopGames(10);
+void App::menu() {
+    clearConsole();
+    std::cout << "1. Chose Clips\n";
+    std::cout << "2. Upload Video\n";
+    std::cout << "3. Settings\n";
+    std::cout << "4. Exit\n";
 
-    int i = 0;
-    for (const auto& game : top_games) {
-        std::cout << i << ": " << game.first << "\n";
-        i++;
+    std::cout << ">> ";
+    int choice = queryInt();
+
+    switch (choice) {
+    case 1:
+        choseClips();
+        break;
+    case 2:
+        buildVideo();
+        break;
+    case 3:
+        settings.menu();
+        break;
+    case 4:
+        deleteAllFilesInFolder("clips/");
+        exit(0);
+        break;
     }
-    std::cout << "Enter the index of the game you want to download clips from\n>> ";
-    int game_index;
-    std::cin >> game_index;
-
-    std::map<std::string, std::string>::iterator game_it = top_games.begin();
-    std::advance(game_it, game_index);
-    setGameID(game_it->second);
+    menu();
 }
 
-void App::queryClipAmount() {
-    int clips;
-    std::cout << "Enter the number of clips you want to download.\n>> ";
-    std::cin >> clips;
-    setClipAmount(clips);
-}
+void App::buildVideo() {
+    const std::string path = "clips/";
+    const std::string output_file_name = "output.mp4";
+    checkAndCreateDirectory(path);
 
-void App::queryClipTimeSpan() {
-    int days;
-    std::cout << "Enter the number of days you want to download clips from.\n>> ";
-    std::cin >> days;
-    setClipTimeSpan(days);
+    std::vector<VideoEditor> clips;
+    for (const auto& entry : std::filesystem::directory_iterator(path)) {
+        if (entry.is_regular_file()) {
+            std::filesystem::path filePath = entry.path();
+            std::string directory = filePath.parent_path().string() + "/";
+            std::string fileName = filePath.filename().string();
+            clips.push_back(VideoEditor(directory, fileName));
+        }
+    }
+
+    if (clips.empty()) {
+        std::cout << "No clips found in the clips folder!" << "\n";
+        return;
+    }
+
+    VideoEditor video = clips[0];
+    clips.erase(clips.begin());
+    video.appendVideos(clips, path + output_file_name);
 }
 
 void App::choseClips() {
@@ -130,7 +65,7 @@ void App::choseClips() {
     const std::string path = "clips/";
     checkAndCreateDirectory(path);
 
-    std::vector<std::string> clip_urls = twitch_con.getTopClipsInTimeSpan(game_id, getClipAmount() * HOURS_IN_DAY, getClipAmount());
+    std::vector<std::string> clip_urls = settings.getClipsUrls();
 
     if (clip_urls.empty()) {
         std::cout << "No clips found for the specified time span!" << "\n";
@@ -186,29 +121,4 @@ void App::choseClips() {
             }
         }
     }
-}
-
-void App::buildVideo() {
-    const std::string path = "clips/";
-    const std::string output_file_name = "output.mp4";
-    checkAndCreateDirectory(path);
-
-    std::vector<VideoEditor> clips;
-    for (const auto& entry : std::filesystem::directory_iterator(path)) {
-        if (entry.is_regular_file()) {
-            std::filesystem::path filePath = entry.path();
-            std::string directory = filePath.parent_path().string() + "/";
-            std::string fileName = filePath.filename().string();
-            clips.push_back(VideoEditor(directory, fileName));
-        }
-    }
-
-    if (clips.empty()) {
-        std::cout << "No clips found in the clips folder!" << "\n";
-        return;
-    }
-
-    VideoEditor video = clips[0];
-    clips.erase(clips.begin());
-    video.appendVideos(clips, path + output_file_name);
 }

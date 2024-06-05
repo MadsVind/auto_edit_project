@@ -1,28 +1,13 @@
 #ifndef TWITCH_API_HPP
 #define TWITCH_API_HPP
 
-#include <string>
-#include <stdexcept>
-#include <cpr/cpr.h>
-#include <nlohmann/json.hpp>
-#include <map>
-#include <vector>
-#include <iostream>
+#include <api.hpp>
 
-class TwitchApi {
-   private:
-    std::string access_token;
-    std::string client_id;
-    std::string client_secret;
+class TwitchApi : public Api {
    public:
-    TwitchApi(const std::string& client_id, const std::string& client_secret) : client_id(client_id), client_secret(client_secret) {
-        initOAuthToken();
-    }
-    /**
-     * Retrieves the OAuth token from the Twitch API.
-     * @throws std::runtime_error if the access token cannot be obtained.
-     */
-    void initOAuthToken();
+    TwitchApi() {} // imediate initialization
+    TwitchApi(const std::string& client_id, const std::string& client_secret)
+        : Api(client_id, client_secret, "https://id.twitch.tv/oauth2/token") {}
 
     /**
      * Retrieves the top games from the Twitch API.
