@@ -21,6 +21,7 @@ bool Api::isCredentialsValid(const std::string& client_id, const std::string& cl
                                              {"grant_type", "client_credentials"}});
 
     auto json = nlohmann::json::parse(r.text);
+    std::cout << r.text << std::endl;
     return json.contains("access_token") && !json["access_token"].is_null();
 }
 

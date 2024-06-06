@@ -15,6 +15,10 @@ class YouTubeApi : public Api {
                      const std::string& description, 
                      const std::string& category_id, 
                      const std::vector<std::string>& tags);
+
+    void initOAuthToken() override;
+
+    bool isCredentialsValid(const std::string& client_id, const std::string& client_secret) override;
 };
 
 #endif 

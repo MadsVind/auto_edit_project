@@ -20,7 +20,7 @@ class Api {
      * Retrieves the OAuth token from the API.
      * Set access_token to "-1" if the token cannot be obtained.
      */
-    void initOAuthToken();
+    virtual void initOAuthToken();
 
     /**
      * @brief Retrieves the access token.
@@ -72,7 +72,7 @@ class Api {
      * @param client_secret The client secret to be validated.
      * @return true if the credentials are valid, false otherwise.
      */
-    bool isCredentialsValid(const std::string& client_id, const std::string& client_secret);
+    virtual bool isCredentialsValid(const std::string& client_id, const std::string& client_secret);
 
     /**
      * @brief Sets the credentials for the API.
