@@ -27,7 +27,6 @@ bool checkAndCreateDirectory(const std::string& dir) {
 int queryInt() {
     std::string input;
     std::getline(std::cin, input);
-    std::cin.ignore();
     if (input.empty()) {
         return -1;
     } else {

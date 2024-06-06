@@ -3,6 +3,7 @@
 void Settings::initSettings() {
     std::string encrypted_id = readFromSettingsFile("twitch_client_id");
     std::string encrypted_secret = readFromSettingsFile("twitch_client_secret");
+
     twitch_con = TwitchApi(ce.bitOrDecrypt(encrypted_id, encryption_key), 
                            ce.bitOrDecrypt(encrypted_secret, encryption_key));
 
@@ -75,7 +76,7 @@ void Settings::queryClipTimeSpan() {
     int days;
     std::cout << "Enter the number of days you want to download clips from.\n>> ";
     std::cin >> days;
-    time_span_days = days;
+    time_span_hours = days * HOURS_IN_DAY;
 }
 
 void Settings::queryCredentials(const std::string& service, Api* api) { // is not generic, should be changed to not for only twitch
@@ -97,7 +98,7 @@ void Settings::queryCredentials(const std::string& service, Api* api) { // is no
     } while (!connection_successful);
     api->setCredentials(client_id, client_secret);
 
-    client_id = ce.bitOrEncrypt(client_secret, encryption_key);
+    client_id = ce.bitOrEncrypt(client_id, encryption_key);
     client_secret = ce.bitOrEncrypt(client_secret, encryption_key);
 
     writeToSettingsFile(service + "_client_id", client_id);
@@ -106,11 +107,21 @@ void Settings::queryCredentials(const std::string& service, Api* api) { // is no
 
 void Settings::writeToSettingsFile(const std::string& key, const std::string& value) {
     nlohmann::json j;
+    
+    std::ifstream read_file(settings_file_name);
+    if (read_file.is_open()) {
+        read_file >> j;
+        read_file.close();
+    } else {
+        std::cerr << "Unable to open file for reading: " << settings_file_name << std::endl;
+    }
+
     j[key] = value;
-    std::ofstream file(settings_file_name);
-    if (file.is_open()) {
-        file << j;
-        file.close();
+
+    std::ofstream write_file(settings_file_name);
+    if (write_file.is_open()) {
+        write_file << j;
+        write_file.close();
     } else {
         std::cerr << "Unable to open file for writing: " << settings_file_name << std::endl;
     }

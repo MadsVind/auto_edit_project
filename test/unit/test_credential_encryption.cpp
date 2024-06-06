@@ -2,9 +2,9 @@
 #define CATCH_CONFIG_MAIN
 
 #include "test_credential_encryption.hpp"
+CredentialEncryption ce;
 
 TEST_CASE("bitOrEncrypt and bitOrDecrypt", "[CredentialEncryption]") {
-    CredentialEncryption ce;
     std::string value = "testValue";
     std::string encryption_key = "testEncryptionKey";
 
@@ -16,7 +16,6 @@ TEST_CASE("bitOrEncrypt and bitOrDecrypt", "[CredentialEncryption]") {
 }
 
 TEST_CASE("bitOrEncrypt and bitOrDecrypt with empty value", "[CredentialEncryption]") {
-    CredentialEncryption ce;
     std::string value = "";
     std::string encryption_key = "testEncryptionKey";
 
@@ -28,7 +27,6 @@ TEST_CASE("bitOrEncrypt and bitOrDecrypt with empty value", "[CredentialEncrypti
 }
 
 TEST_CASE("bitOrEncrypt and bitOrDecrypt with empty encryption key", "[CredentialEncryption]") {
-    CredentialEncryption ce;
     std::string value = "testValue";
     std::string encryption_key = "";
 

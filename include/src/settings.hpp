@@ -13,16 +13,16 @@ class Settings {
    public:
     Settings() : twitch_con(), youtube_con() { initSettings(); };
     void menu();
-    std::vector<std::string> getClipsUrls() {return twitch_con.getTopClipsInTimeSpan(game_id, time_span_days, clip_amount);};
+    std::vector<std::string> getClipsUrls() {return twitch_con.getTopClipsInTimeSpan(game_id, time_span_hours, clip_amount);};
 
    private:
     const std::string encryption_key = "simple_key";
     const std::string settings_file_name = "../settings.txt";
+    const int HOURS_IN_DAY = 24;
 
     std::string game_id = "32399";
-    int time_span_days = 7;
+    int time_span_hours = 7 * 24;
     int clip_amount = 10;
-    const int HOURS_IN_DAY = 24;
     TwitchApi twitch_con;
     YouTubeApi youtube_con;
     CredentialEncryption ce;

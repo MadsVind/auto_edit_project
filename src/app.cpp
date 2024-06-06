@@ -7,6 +7,20 @@ void App::downloadClip(const std::string& url, const std::string& file_name) {
     file.close();
 }
 
+void App::downloadClips(const std::vector<std::string>& clip_urls) {
+    std::cout << "Downloading " << clip_urls.size() << " clips..." << "\n";
+
+    std::vector<std::thread> threads;
+    for (int i = 0; i < clip_urls.size(); i++) {
+        std::string output_file_name = PATH + std::to_string(i + 1) + BASE_FILE_NAME;
+        threads.push_back(std::thread(&App::downloadClip, this, clip_urls[i], output_file_name));
+    }
+
+    for (auto& thread : threads) {
+        thread.join();
+    }
+}
+
 void App::menu() {
     clearConsole();
     std::cout << "1. Chose Clips\n";
@@ -36,12 +50,10 @@ void App::menu() {
 }
 
 void App::buildVideo() {
-    const std::string path = "clips/";
-    const std::string output_file_name = "output.mp4";
-    checkAndCreateDirectory(path);
+    checkAndCreateDirectory(PATH);
 
     std::vector<VideoEditor> clips;
-    for (const auto& entry : std::filesystem::directory_iterator(path)) {
+    for (const auto& entry : std::filesystem::directory_iterator(PATH)) {
         if (entry.is_regular_file()) {
             std::filesystem::path filePath = entry.path();
             std::string directory = filePath.parent_path().string() + "/";
@@ -57,68 +69,52 @@ void App::buildVideo() {
 
     VideoEditor video = clips[0];
     clips.erase(clips.begin());
-    video.appendVideos(clips, path + output_file_name);
+    video.appendVideos(clips, PATH + RESULT_FILE_NAME);
 }
 
 void App::choseClips() {
-    const std::string base_file_name = "clip.mp4";
-    const std::string path = "clips/";
-    checkAndCreateDirectory(path);
-
+    checkAndCreateDirectory(PATH);
     std::vector<std::string> clip_urls = settings.getClipsUrls();
 
     if (clip_urls.empty()) {
         std::cout << "No clips found for the specified time span!" << "\n";
         return;
     }
-    std::cout << "Downloading " << clip_urls.size() << " clips..." << "\n";
-
-    std::vector<std::thread> threads;
-    for (int i = 0; i < clip_urls.size(); i++) {
-        std::string output_file_name = path + std::to_string(i + 1) + base_file_name;
-        threads.push_back(std::thread(&App::downloadClip, this, clip_urls[i], output_file_name));
-    }
-
-    for (auto& thread : threads) {
-        thread.join();
-    }
+    downloadClips(clip_urls);
 
     for (int i = 0; i < clip_urls.size(); i++) {
-        std::string output_file_name = path + std::to_string(i + 1) + base_file_name;
+        std::string output_file_name = PATH + std::to_string(i + 1) + BASE_FILE_NAME;
         char choice;
         do {
             clearConsole();
-            std::cout << "Use clip " << i + 1 << " (y for keeping/n for deleting/x for stopping \n>> ";
-            std::cin >> choice;
-            std::cin.ignore();
-        } while (choice != 'y' && choice != 'n' && choice != 'x'); 
+            std::cout << "Clip " << i + 1 << " \n1. for keeping\n2. for editing and keeping\n3. for deleting\n4. Accept remaining\n>> ";
+            choice = queryInt();
+        } while (choice != 1 && choice != 2 && choice != 3 && choice != 4); 
         
-        if (choice == 'x') {
-            std::remove((output_file_name).c_str());
-            break;
-        }
-        if (choice == 'n') std::remove((output_file_name).c_str());
-        if (choice == 'y') {
-            bool cropping = false;
-            VideoEditor temp_video = VideoEditor(path + std::to_string(i + 1), base_file_name);
-            int start_time = 0;
-            int end_time = temp_video.getVideoLength();
-            
-            std::cout << "Crop the clip, start time in milliseconds\n>> ";
-            int temp = queryInt();
-            if (temp != -1) {
-                start_time = temp;
-                cropping = true;
-            }
-            std::cout << "Crop the clip, end time in milliseconds\n>> ";
-            temp = queryInt();
-            if (temp != -1) {
-                end_time = temp;
-                cropping = true;
-            }
-            if (cropping) {
-                temp_video.trimVideo(start_time, end_time);
-            }
-        }
+        if (choice == 1) continue;
+        else if (choice == 2) editVideo(std::to_string(i + 1) + BASE_FILE_NAME);
+        else if (choice == 3) std::remove((output_file_name).c_str());
+        else if (choice == 4) break;
     }
+}
+
+void App::editVideo(const std::string& file_name) {
+    bool cropping = false;
+    VideoEditor temp_video = VideoEditor(PATH, file_name);
+    int start_time = 0;
+    int end_time = temp_video.getVideoLength();
+    
+    std::cout << "Crop the clip, start time in milliseconds\n>> ";
+    int temp = queryInt();
+    if (temp != -1) {
+        start_time = temp;
+        cropping = true;
+    }
+    std::cout << "Crop the clip, end time in milliseconds\n>> ";
+    temp = queryInt();
+    if (temp != -1) {
+        end_time = temp;
+        cropping = true;
+    }
+    if (cropping) temp_video.trimVideo(start_time, end_time);
 }

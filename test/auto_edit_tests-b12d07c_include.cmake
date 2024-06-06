@@ -1,0 +1,5 @@
+if(EXISTS "/home/vind/auto_edit_project/test/auto_edit_tests-b12d07c_tests.cmake")
+  include("/home/vind/auto_edit_project/test/auto_edit_tests-b12d07c_tests.cmake")
+else()
+  add_test(auto_edit_tests_NOT_BUILT-b12d07c auto_edit_tests_NOT_BUILT-b12d07c)
+endif()
