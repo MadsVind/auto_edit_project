@@ -41,6 +41,7 @@ int queryInt() {
 }
 
 void deleteAllFilesInFolder(const std::string& folderPath) {
+    if (!std::filesystem::exists(folderPath)) return;
     for (const auto& entry : std::filesystem::directory_iterator(folderPath)) {
         if (entry.is_regular_file()) {
             std::filesystem::remove(entry);

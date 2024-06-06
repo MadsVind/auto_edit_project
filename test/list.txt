@@ -1,1 +1,0 @@
-file '/home/vind/auto_edit_project/test/unit/test_videos/example1.mp4'

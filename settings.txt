@@ -1,1 +1,1 @@
-{"twitch_client_id":"@\u0000Z\t\u0007\u0002(S\f@DP\u0000GT\u0002j\u0005\u001c\t\u0017_\u0003\u001e\u001c\t<[\u000fA","twitch_client_secret":"\u0015\u0006\u0005\u0019Z\u0003%^\b\u001b\u0019\b\\G\tS&\u001f\f\r\u0012\u0002\u0001D\u0000\u0006*\u000f\u0006\r"}
+{"clip_amount":"10","game_id":"32399","time_span_hours":"168","twitch_client_id":"@\u0000Z\t\u0007\u0002(S\f@DP\u0000GT\u0002j\u0005\u001c\t\u0017_\u0003\u001e\u001c\t<[\u000fA","twitch_client_secret":"\u0015\u0006\u0005\u0019Z\u0003%^\b\u001b\u0019\b\\G\tS&\u001f\f\r\u0012\u0002\u0001D\u0000\u0006*\u000f\u0006\r"}

@@ -11,6 +11,14 @@ void Settings::initSettings() {
     encrypted_secret = readFromSettingsFile("youtube_client_secret");
     youtube_con = YouTubeApi(ce.bitOrDecrypt(encrypted_id, encryption_key), 
                            ce.bitOrDecrypt(encrypted_secret, encryption_key));
+
+    game_id = readFromSettingsFile("game_id");
+    if (game_id == "") game_id = "32399";
+    std::string clip_amount_str = readFromSettingsFile("clip_amount");
+    clip_amount = (clip_amount_str == "") ? 10 : std::stoi(clip_amount_str);
+
+    std::string time_span_hours_str = readFromSettingsFile("time_span_hours");
+    time_span_hours = (time_span_hours_str == "") ? 7 * 24 : std::stoi(time_span_hours_str);
 }
 
 void Settings::menu() {
@@ -57,26 +65,27 @@ void Settings::queryGame() {
         i++;
     }
     std::cout << "Enter the index of the game you want to download clips from\n>> ";
-    int game_index;
-    std::cin >> game_index;
+    int game_index = queryInt();
 
     std::map<std::string, std::string>::iterator game_it = top_games.begin();
     std::advance(game_it, game_index);
     game_id = game_it->second;
+    writeToSettingsFile("game_id", game_id);
 }
 
 void Settings::queryClipAmount() {
     int temp_clip_amount;
     std::cout << "Enter the number of clips you want to download.\n>> ";
-    std::cin >> temp_clip_amount;
-    clip_amount = temp_clip_amount;
+    clip_amount = queryInt();
+    writeToSettingsFile("clip_amount", std::to_string(clip_amount));
 }
 
 void Settings::queryClipTimeSpan() {
     int days;
     std::cout << "Enter the number of days you want to download clips from.\n>> ";
-    std::cin >> days;
+    days = queryInt();
     time_span_hours = days * HOURS_IN_DAY;
+    writeToSettingsFile("time_span_hours", std::to_string(time_span_hours));
 }
 
 void Settings::queryCredentials(const std::string& service, Api* api) { // is not generic, should be changed to not for only twitch

@@ -60,3 +60,11 @@ add_subdirectory(test)
 # Link the required libraries to the executable
 target_link_libraries(auto_edit PRIVATE cpr nlohmann_json::nlohmann_json CURL::libcurl)
 
+# Add a custom target that builds and runs everything
+add_custom_target(run_everything ALL
+                  COMMAND ${CMAKE_COMMAND} --build . --target auto_edit_tests
+                  COMMAND ctest -C $<CONFIGURATION>
+                  COMMENT "Building and running everything")
+
+# Add a dependency from `auto_edit` to `run_everything`
+add_dependencies(auto_edit run_everything)
