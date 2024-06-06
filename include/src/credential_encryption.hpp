@@ -11,25 +11,44 @@
  */
 class CredentialEncryption {
 public:
-    /**
-     * @brief Writes the encrypted key-value pair to a file using the specified encryption key.
-     * 
-     * @param key The key to be encrypted and written to the file.
-     * @param value The value to be encrypted and written to the file.
-     * @param encryption_key The encryption key used to encrypt the key-value pair.
-     * @param filename The name of the file to write the encrypted data to.
-     */
-    void writeEncryptedToFile(const std::string& key, const std::string& value, const std::string& encryption_key, const std::string& filename);
+//    /**
+//     * @brief Writes the encrypted key-value pair to a file using the specified encryption key.
+//     * 
+//     * @param key The key to be encrypted and written to the file.
+//     * @param value The value to be encrypted and written to the file.
+//     * @param encryption_key The encryption key used to encrypt the key-value pair.
+//     * @param filename The name of the file to write the encrypted data to.
+//     */
+//    void writeEncryptedToFile(const std::string& key, const std::string& value, const std::string& encryption_key, const std::string& filename);
+//
+//    /**
+//     * @brief Reads and decrypts the value associated with the specified key from a file using the specified encryption key.
+//     * 
+//     * @param key The key to be decrypted and used to retrieve the value from the file.
+//     * @param encryption_key The encryption key used to decrypt the value associated with the key.
+//     * @param filename The name of the file to read the encrypted data from.
+//     * @return The decrypted value associated with the specified key.
+//     */
+//    std::string readDecryptedFromFile(const std::string& key, const std::string& encryption_key, const std::string& filename);
+
 
     /**
-     * @brief Reads and decrypts the value associated with the specified key from a file using the specified encryption key.
+     * @brief Encrypts the value using the specified encryption key and returns the encrypted value.
      * 
-     * @param key The key to be decrypted and used to retrieve the value from the file.
-     * @param encryption_key The encryption key used to decrypt the value associated with the key.
-     * @param filename The name of the file to read the encrypted data from.
-     * @return The decrypted value associated with the specified key.
+     * @param value The value to be encrypted.
+     * @param encryption_key The encryption key used to encrypt the key-value pair.
+     * @return The encrypted value.
      */
-    std::string readDecryptedFromFile(const std::string& key, const std::string& encryption_key, const std::string& filename);
+    std::string bitOrEncrypt(const std::string& value, const std::string& encryption_key);
+
+    /**
+     * @brief Decrypts the value using the specified encryption key.
+     * 
+     * @param key The value to be decrypted.
+     * @param encryption_key The encryption key used to decrypt.
+     * @return The decrypted value.
+     */
+    std::string bitOrDecrypt(const std::string& value, const std::string& encryption_key);
 };
 
 #endif 

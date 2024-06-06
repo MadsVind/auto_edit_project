@@ -1,23 +1,10 @@
 #include <twitch_api.hpp>
 
-void TwitchApi::initOAuthToken() {
-    cpr::Response r = cpr::Post(cpr::Url{"https://id.twitch.tv/oauth2/token"},
-                                cpr::Payload{{"client_id", client_id},
-                                             {"client_secret", client_secret},
-                                             {"grant_type", "client_credentials"}});
-
-    auto json = nlohmann::json::parse(r.text);
-    if(json.contains("access_token") && !json["access_token"].is_null()) {
-        access_token = json["access_token"];
-    } else {
-        throw std::runtime_error("Failed to get access token");
-    }
-}
 
 std::map<std::string, std::string> TwitchApi::getTopGames(const int& count) {
     cpr::Response r = cpr::Get(cpr::Url{"https://api.twitch.tv/helix/games/top"},
-                               cpr::Header{{"Client-ID", client_id},
-                                           {"Authorization", "Bearer " + access_token}},
+                               cpr::Header{{"Client-ID", getClientId()},
+                                           {"Authorization", "Bearer " + getAccessToken()}},
                                cpr::Parameters{{"first", std::to_string(count)}});
 
     auto json = nlohmann::json::parse(r.text);
@@ -47,8 +34,8 @@ std::vector<std::string> TwitchApi::getTopClipsInTimeSpan(const std::string& gam
     week_ago_ss << std::put_time(std::gmtime(&week_ago_time_t), "%FT%TZ"); // Format to RFC3339
 
     cpr::Response r = cpr::Get(cpr::Url{"https://api.twitch.tv/helix/clips"},
-                               cpr::Header{{"Client-ID", client_id},
-                                           {"Authorization", "Bearer " + access_token}},
+                               cpr::Header{{"Client-ID", getClientId()},
+                                           {"Authorization", "Bearer " + getAccessToken()}},
                                cpr::Parameters{{"game_id", game_id},
                                                {"started_at", week_ago_ss.str()},
                                                {"ended_at", now_ss.str()},

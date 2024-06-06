@@ -1,0 +1,25 @@
+bitOrEncrypt 0 0
+bitOrEncrypt 0 0
+bitOrEncrypt 0 0
+VideoEditor 0 0
+VideoEditor 0 0
+VideoEditor 0 0
+bitOrEncrypt 0 0
+bitOrEncrypt 0 0
+bitOrEncrypt 0 0
+VideoEditor 0 0
+VideoEditor 0 0
+VideoEditor 0 0
+bitOrEncrypt 0 0
+bitOrEncrypt 0 0
+bitOrEncrypt 0 0
+VideoEditor 0 0
+VideoEditor 0 0
+VideoEditor 0 0
+bitOrEncrypt and bitOrDecrypt 1 0.0029565
+bitOrEncrypt and bitOrDecrypt with empty value 1 0.002442
+bitOrEncrypt and bitOrDecrypt with empty encryption key 1 0.0020695
+VideoEditor trims and appends videos correctly 1 0.385109
+VideoEditor throws an error when trying to trim a video with invalid start or end second 1 0.154664
+VideoEditor throws an error when trying to append a video that does not exist 1 0.0023856
+---

@@ -1,3 +1,8 @@
 /.vscode
 /build
 /credentials.txt
+/credentials.json
+/_deps
+/CMakeFiles
+/clips
+/test/CMakeFiles

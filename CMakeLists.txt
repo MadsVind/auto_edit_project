@@ -40,14 +40,14 @@ link_directories("${CMAKE_HOME_DIRECTORY}/../doc/vcpkg/installed/x64-linux/lib")
 
 # Include the directories
 include_directories("include")
-file(GLOB_RECURSE ALL_INCLUDE_DIRS RELATIVE ${CMAKE_SOURCE_DIR} "include/*")
+file(GLOB_RECURSE ALL_INCLUDE_DIRS RELATIVE ${CMAKE_SOURCE_DIR} "src/*.hpp" "src/**/*.hpp" "include/**/*.hpp")
 foreach(DIR ${ALL_INCLUDE_DIRS})
     get_filename_component(DIR_PATH ${DIR} PATH)
     include_directories(${DIR_PATH})
 endforeach()
 
 # Get a list of all source files in the src directory and its subdirectories
-file(GLOB_RECURSE SOURCES "src/*.cpp")
+file(GLOB_RECURSE SOURCES "src/*.cpp" "src/**/*.cpp" "include/**/*.cpp")
 
 # Add main.cpp to the list of source files
 list(APPEND SOURCES "main.cpp")
