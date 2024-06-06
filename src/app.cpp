@@ -37,7 +37,8 @@ void App::menu() {
         break;
     case 2:
         buildVideo();
-        break;
+        uploadVideo();
+        return;
     case 3:
         settings.menu();
         break;
@@ -70,6 +71,41 @@ void App::buildVideo() {
     VideoEditor video = clips[0];
     clips.erase(clips.begin());
     video.appendVideos(clips, PATH + RESULT_FILE_NAME);
+}
+
+std::vector<std::string> splitString(const std::string& str, char delimiter) {
+    std::vector<std::string> tokens;
+    std::string token;
+    std::istringstream tokenStream(str);
+    while (std::getline(tokenStream, token, delimiter)) {
+        tokens.push_back(token);
+    }
+    return tokens;
+}
+
+void App::uploadVideo() {
+    std::string title = settings.readFromSettingsFile("video_title");
+    std::string category_id = settings.readFromSettingsFile("video_category");
+    std::string description = settings.readFromSettingsFile("video_description");
+    std::string temp_tags = settings.readFromSettingsFile("video_tags");
+    std::vector<std::string> tags;
+
+    if (temp_tags.length() > 2) {
+        temp_tags = temp_tags.erase(0, 1);
+        temp_tags = temp_tags.erase(temp_tags.length() - 2, 1);
+        tags = splitString(temp_tags, ',');
+    } 
+
+    std::cout << "Insert start of title\n>> ";
+    std::string start_title;
+    std::getline(std::cin, start_title);
+
+    title = start_title + " " + title;
+
+    std::cout << "Uploading video..." << "\n";
+    settings.getYouTubeApi().uploadVideo(PATH + RESULT_FILE_NAME, title, description, category_id, tags);
+    std::cout << "Video uploaded successfully!" << "\n";
+    exit(0);
 }
 
 void App::choseClips() {

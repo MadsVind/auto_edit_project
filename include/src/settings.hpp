@@ -15,14 +15,17 @@ class Settings {
     void menu();
     std::vector<std::string> getClipsUrls() {return twitch_con.getTopClipsInTimeSpan(game_id, time_span_hours, clip_amount);};
 
+    TwitchApi getTwitchApi() {return twitch_con;};
+    YouTubeApi getYouTubeApi() {return youtube_con;};
+
    private:
     const std::string encryption_key = "simple_key";
     const std::string settings_file_name = "../settings.txt";
     const int HOURS_IN_DAY = 24;
 
-    std::string game_id = "32399";
-    int time_span_hours = 7 * 24;
-    int clip_amount = 10;
+    std::string game_id;
+    int time_span_hours;
+    int clip_amount;
     TwitchApi twitch_con;
     YouTubeApi youtube_con;
     CredentialEncryption ce;
@@ -61,6 +64,7 @@ class Settings {
      */
     void queryCredentials(const std::string& service, Api* api);
 
+   public:
     /**
      * Writes the given key-value pair to the settings file.
      *

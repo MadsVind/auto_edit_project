@@ -10,7 +10,7 @@ void Settings::initSettings() {
     encrypted_id = readFromSettingsFile("youtube_client_id");
     encrypted_secret = readFromSettingsFile("youtube_client_secret");
     youtube_con = YouTubeApi(ce.bitOrDecrypt(encrypted_id, encryption_key), 
-                           ce.bitOrDecrypt(encrypted_secret, encryption_key));
+                             ce.bitOrDecrypt(encrypted_secret, encryption_key));
 
     game_id = readFromSettingsFile("game_id");
     if (game_id == "") game_id = "32399";
@@ -146,7 +146,7 @@ std::string Settings::readFromSettingsFile(const std::string& key) {
     }
 
     try {
-        value = j[key];
+        value = j[key].get<std::string>();
     } catch(const std::exception& e) {
         return "";
     }
