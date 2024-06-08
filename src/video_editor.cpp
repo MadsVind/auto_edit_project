@@ -68,16 +68,19 @@ void VideoEditor::appendVideos(const std::vector<VideoEditor>& videos, std::stri
     
     std::ofstream listFile("list.txt");
     listFile << "file '" << filePath + fileName << "'\n";
+
     for (const auto& video : videos) {
         std::string videoPath = video.getFilePath() + video.getFileName();
         if (!std::filesystem::exists(videoPath)) {
+            listFile.close();
+            remove("list.txt");
             throw std::runtime_error("Video file does not exist: " + videoPath);
         }
         listFile << "file '" << videoPath << "'\n";
     }
     listFile.close();
 
-    std::string command = "ffmpeg -f concat -safe 0 -i list.txt -c copy " + outputPath + + " -y > /dev/null 2>&1";
+    std::string command = "ffmpeg -f concat -safe 0 -i list.txt -c copy " + outputPath + " -y > ffmpeg_error.txt 2>&1";
     int result = system(command.c_str());
     if (result != 0) {
         throw std::runtime_error("Failed to append videos");

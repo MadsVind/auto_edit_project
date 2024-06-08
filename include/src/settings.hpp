@@ -41,6 +41,16 @@ class Settings {
     void initSettings(); 
 
     /**
+     * @brief Initializes the API.
+     * 
+     * This function is responsible for initializing the API with the provided `api` object.
+     * 
+     * @param api The API object to be initialized.
+     * @param service The name of the service for which the API is being initialized.
+     */
+    void initApi(Api *api, const std::string& service);
+
+    /**
      * @brief Queries the Twitch API for game information.
      */
     void queryGame();
@@ -54,7 +64,6 @@ class Settings {
      * @brief Queries the user for the desired clip time span.
      */
     void queryClipTimeSpan();
-
     
     /**
      * Queries the credentials for a given service and sets them in the provided API object.

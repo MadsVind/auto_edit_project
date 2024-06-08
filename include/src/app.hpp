@@ -14,7 +14,8 @@ class App {
 
     const std::string BASE_FILE_NAME = "clip.mp4";
     const std::string PATH = "clips/";
-    const std::string RESULT_FILE_NAME = "output/output.mp4";
+    const std::string RESULT_PATH = "output/";
+    const std::string RESULT_FILE_NAME = "output.mp4";
 
     /**
      * @brief Downloads a clip from the specified URL and saves it with the specified file name.

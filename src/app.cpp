@@ -21,6 +21,13 @@ void App::downloadClips(const std::vector<std::string>& clip_urls) {
     }
 }
 
+void endProgram() {
+    std::cout << "Deleting Clips..." << "\n";
+    deleteAllFilesInFolder("clips/");
+    std::cout << "Exiting program..." << "\n";
+    exit(0);
+}
+
 void App::menu() {
     clearConsole();
     std::cout << "1. Chose Clips\n";
@@ -43,8 +50,7 @@ void App::menu() {
         settings.menu();
         break;
     case 4:
-        deleteAllFilesInFolder("clips/");
-        exit(0);
+        endProgram();
         break;
     }
     menu();
@@ -52,6 +58,7 @@ void App::menu() {
 
 void App::buildVideo() {
     checkAndCreateDirectory(PATH);
+    checkAndCreateDirectory(PATH + RESULT_PATH);
 
     std::vector<VideoEditor> clips;
     for (const auto& entry : std::filesystem::directory_iterator(PATH)) {
@@ -70,7 +77,7 @@ void App::buildVideo() {
 
     VideoEditor video = clips[0];
     clips.erase(clips.begin());
-    video.appendVideos(clips, PATH + RESULT_FILE_NAME);
+    video.appendVideos(clips, PATH + RESULT_PATH + RESULT_FILE_NAME);
 }
 
 std::vector<std::string> splitString(const std::string& str, char delimiter) {
@@ -103,9 +110,9 @@ void App::uploadVideo() {
     title = start_title + " " + title;
 
     std::cout << "Uploading video..." << "\n";
-    settings.getYouTubeApi().uploadVideo(PATH + RESULT_FILE_NAME, title, description, category_id, tags);
+    settings.getYouTubeApi().uploadVideo(PATH + RESULT_PATH + RESULT_FILE_NAME, title, description, category_id, tags);
     std::cout << "Video uploaded successfully!" << "\n";
-    exit(0);
+    endProgram();
 }
 
 void App::choseClips() {
