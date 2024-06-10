@@ -49,22 +49,17 @@ endforeach()
 # Get a list of all source files in the src directory and its subdirectories
 file(GLOB_RECURSE SOURCES "src/*.cpp" "src/**/*.cpp" "include/**/*.cpp")
 
-# Add main.cpp to the list of source files
-list(APPEND SOURCES "main.cpp")
+# Add a library that is built from the source files
+add_library(auto_edit_lib ${SOURCES})
 
-# Add an executable that is built from the source files
-add_executable(auto_edit ${SOURCES})
+# Link the required libraries to the library
+target_link_libraries(auto_edit_lib PRIVATE cpr nlohmann_json::nlohmann_json CURL::libcurl)
 
+# Add an executable that is built from main.cpp
+add_executable(auto_edit main.cpp)
+
+# Link the library to the executable
+target_link_libraries(auto_edit PRIVATE auto_edit_lib)
+
+# Add the test subdirectory
 add_subdirectory(test)
-
-# Link the required libraries to the executable
-target_link_libraries(auto_edit PRIVATE cpr nlohmann_json::nlohmann_json CURL::libcurl)
-
-# Add a custom target that builds and runs everything
-add_custom_target(run_everything ALL
-                  COMMAND ${CMAKE_COMMAND} --build . --target auto_edit_tests
-                  COMMAND ctest -C $<CONFIGURATION>
-                  COMMENT "Building and running everything")
-
-# Add a dependency from `auto_edit` to `run_everything`
-add_dependencies(auto_edit run_everything)

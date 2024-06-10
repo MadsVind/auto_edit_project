@@ -24,6 +24,26 @@ bool checkAndCreateDirectory(const std::string& dir) {
     return true;
 }
 
+bool checkAndCreateFile(const std::string& filename) {
+    std::ifstream file(filename.c_str());
+
+    if (file.good()) {
+        // The file exists
+        file.close();
+    } else {
+        // The file does not exist, so create it
+        std::ofstream file(filename.c_str());
+        if (!file) {
+            // Failed to create the file
+            std::cerr << "Error: Failed to create file " << filename << std::endl;
+            return false;
+        }
+        file.close();
+    }
+
+    return true;
+}
+
 int queryInt() {
     std::string input;
     std::getline(std::cin, input);
