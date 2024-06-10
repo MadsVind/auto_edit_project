@@ -5,7 +5,8 @@
 
 class TwitchApi : public Api {
    public:
-    TwitchApi() {} // imediate initialization
+    TwitchApi() : Api("https://id.twitch.tv/oauth2/token") {} // imediate initialization
+    TwitchApi(const std::string& access_token) : Api(access_token, "https://id.twitch.tv/oauth2/token") {}
     TwitchApi(const std::string& client_id, const std::string& client_secret)
         : Api(client_id, client_secret, "https://id.twitch.tv/oauth2/token") {}
 
@@ -27,6 +28,17 @@ class TwitchApi : public Api {
      * @throws std::runtime_error if the clip URLs cannot be obtained.
      */
     std::vector<std::string> getTopClipsInTimeSpan(const std::string& game_id, const int& hours, const int& clip_amount);
+
+
+    /**
+     * @brief Checks if the token is valid.
+     * 
+     * This function checks whether the token is valid or not. It returns true if the token is valid,
+     * and false otherwise.
+     * 
+     * @return true if the token is valid, false otherwise.
+     */
+    bool isTokenValid() override;
 };
 
 #endif 

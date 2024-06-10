@@ -62,3 +62,16 @@ std::vector<std::string> TwitchApi::getTopClipsInTimeSpan(const std::string& gam
 
     return clip_download_urls;
 }
+
+bool TwitchApi::isTokenValid() {
+    cpr::Response r = cpr::Get(cpr::Url{"https://id.twitch.tv/oauth2/validate"},
+                               cpr::Header{{"Authorization", "OAuth " + getAccessToken()}});
+
+    if (r.status_code != 200) {
+        std::cout << r.text << std::endl;
+        return false;
+    }
+
+    nlohmann::json j = nlohmann::json::parse(r.text);
+    return j["client_id"] == getClientId();
+}
