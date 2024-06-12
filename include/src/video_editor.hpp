@@ -3,12 +3,15 @@
 
 #include <string>
 #include <vector>
-#include <cstdlib>
-#include <fstream>
-#include <unistd.h>
-#include <memory>
 #include <filesystem>
-#include <iomanip>
+
+extern "C" {
+#include <libavformat/avformat.h>
+#include <libavutil/timestamp.h>
+#include <libavfilter/avfilter.h>
+#include <libavfilter/buffersink.h>
+#include <libavfilter/buffersrc.h>
+}
 
 /**
  * @class VideoEditor

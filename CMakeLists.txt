@@ -22,6 +22,8 @@ set(CMAKE_TOOLCHAIN_FILE "${CMAKE_HOME_DIRECTORY}/../doc/vcpkg/scripts/buildsyst
 # Set the root directory for finding ZLIB library
 set(ZLIB_ROOT "${CMAKE_HOME_DIRECTORY}/../doc/vcpkg/installed/x64-linux")
 
+set(CURL_LIBRARY "-lcurl") 
+
 # Set the policy for handling if() command behavior
 if(POLICY CMP0074)
     cmake_policy(SET CMP0074 NEW)
@@ -30,10 +32,14 @@ endif()
 # Find the cpr and nlohmann_json packages
 find_package(cpr CONFIG REQUIRED)
 find_package(nlohmann_json CONFIG REQUIRED)
-
-# Set the CURL library
-set(CURL_LIBRARY "-lcurl") 
 find_package(CURL REQUIRED)
+find_package(PkgConfig REQUIRED)
+
+pkg_check_modules(AVCODEC REQUIRED IMPORTED_TARGET libavcodec)
+pkg_check_modules(AVFORMAT REQUIRED IMPORTED_TARGET libavformat)
+pkg_check_modules(AVUTIL REQUIRED IMPORTED_TARGET libavutil)
+pkg_check_modules(AVFILTER REQUIRED IMPORTED_TARGET libavfilter) 
+
 
 # Add the link directories
 link_directories("${CMAKE_HOME_DIRECTORY}/../doc/vcpkg/installed/x64-linux/lib")
@@ -59,7 +65,7 @@ target_link_libraries(auto_edit_lib PRIVATE cpr nlohmann_json::nlohmann_json CUR
 add_executable(auto_edit main.cpp)
 
 # Link the library to the executable
-target_link_libraries(auto_edit PRIVATE auto_edit_lib)
+target_link_libraries(auto_edit PRIVATE auto_edit_lib PkgConfig::AVCODEC PkgConfig::AVFORMAT PkgConfig::AVUTIL PkgConfig::AVFILTER)
 
 # Add the test subdirectory
 add_subdirectory(test)
