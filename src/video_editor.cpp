@@ -1,47 +1,18 @@
 #include "video_editor.hpp"
 
-std::string exec(const char* cmd) {
-    std::array<char, 128> buffer;
-    std::string result;
-    std::string command = std::string(cmd) + " > /dev/null 2>&1";
-    std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(cmd, "r"), pclose);
-    if (!pipe) {
-        throw std::runtime_error("popen() failed!");
-    }
-    while (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr) {
-        result += buffer.data();
-    }
-    return result;
-}
-
-std::string formatTime(double milliseconds) {
-    int hours = static_cast<int>(milliseconds) / 3600000;
-    milliseconds -= hours * 3600000;
-    int minutes = static_cast<int>(milliseconds) / 60000;
-    milliseconds -= minutes * 60000;
-    double seconds = milliseconds / 1000;
-
-    std::ostringstream oss;
-    oss << std::setfill('0') << std::setw(2) << hours << ":"
-        << std::setfill('0') << std::setw(2) << minutes << ":"
-        << std::fixed << std::setprecision(3) << seconds;
-
-    return oss.str();
-}
-
 double VideoEditor::getVideoLength() const {
-        AVFormatContext *fmt_ctx = NULL;
-        int ret;
-        if ((ret = avformat_open_input(&fmt_ctx, (filePath + fileName).c_str(), NULL, NULL)) < 0) {
-            throw std::runtime_error("Could not open source file");
-        }
-        if ((ret = avformat_find_stream_info(fmt_ctx, NULL)) < 0) {
-            throw std::runtime_error("Could not find stream information");
-        }
-        double duration = fmt_ctx->duration / AV_TIME_BASE;
-        avformat_close_input(&fmt_ctx);
-        return duration * 1000; // Convert to milliseconds
+    AVFormatContext *fmt_ctx = NULL;
+    int ret;
+    if ((ret = avformat_open_input(&fmt_ctx, (filePath + fileName).c_str(), NULL, NULL)) < 0) {
+        throw std::runtime_error("Could not open source file");
     }
+    if ((ret = avformat_find_stream_info(fmt_ctx, NULL)) < 0) {
+        throw std::runtime_error("Could not find stream information");
+    }
+    double duration = fmt_ctx->duration / AV_TIME_BASE;
+    avformat_close_input(&fmt_ctx);
+    return duration * 1000; // Convert to milliseconds
+}
 
 void VideoEditor::trimVideo(double startMillisecond, double endMillisecond) const {
     double duration = getVideoLength(); 
@@ -73,7 +44,7 @@ void VideoEditor::trimVideo(double startMillisecond, double endMillisecond) cons
     stream_mapping_size = ifmt_ctx->nb_streams;
     stream_mapping = (int *)av_mallocz_array(stream_mapping_size, sizeof(*stream_mapping));
 
-    while (1) {
+    while (true) {
         AVStream *in_stream, *out_stream;
 
         ret = av_read_frame(ifmt_ctx, &packet);
@@ -135,12 +106,11 @@ void VideoEditor::appendVideos(const std::vector<VideoEditor>& videos, std::stri
         stream_mapping_size = ifmt_ctx->nb_streams;
         stream_mapping = (int *)av_mallocz_array(stream_mapping_size, sizeof(*stream_mapping));
 
-        while (1) {
+        while (true) {
             AVStream *in_stream, *out_stream;
 
             ret = av_read_frame(ifmt_ctx, &packet);
-            if (ret < 0)
-                break;
+            if (ret < 0) break;
 
             in_stream  = ifmt_ctx->streams[packet.stream_index];
             out_stream = ofmt_ctx->streams[stream_mapping[packet.stream_index]];
