@@ -21,13 +21,6 @@ void App::downloadClips(const std::vector<std::string>& clip_urls) {
     }
 }
 
-void endProgram() {
-    std::cout << "Deleting Clips..." << "\n";
-    deleteAllFilesInFolder("clips/");
-    std::cout << "Exiting program..." << "\n";
-    exit(0);
-}
-
 void App::menu() {
     clearConsole();
     std::cout << "1. Chose Clips\n";
@@ -44,13 +37,13 @@ void App::menu() {
         break;
     case 2:
         buildVideo();
-        uploadVideo();
-        return;
+        break;
     case 3:
         settings.menu();
         break;
     case 4:
-        endProgram();
+        deleteAllFilesInFolder("clips/");
+        exit(0);
         break;
     }
     menu();
@@ -58,7 +51,6 @@ void App::menu() {
 
 void App::buildVideo() {
     checkAndCreateDirectory(PATH);
-    checkAndCreateDirectory(PATH + RESULT_PATH);
 
     std::vector<VideoEditor> clips;
     for (const auto& entry : std::filesystem::directory_iterator(PATH)) {
@@ -77,42 +69,7 @@ void App::buildVideo() {
 
     VideoEditor video = clips[0];
     clips.erase(clips.begin());
-    video.appendVideos(clips, PATH + RESULT_PATH + RESULT_FILE_NAME);
-}
-
-std::vector<std::string> splitString(const std::string& str, char delimiter) {
-    std::vector<std::string> tokens;
-    std::string token;
-    std::istringstream tokenStream(str);
-    while (std::getline(tokenStream, token, delimiter)) {
-        tokens.push_back(token);
-    }
-    return tokens;
-}
-
-void App::uploadVideo() {
-    std::string title = settings.readFromSettingsFile("video_title");
-    std::string category_id = settings.readFromSettingsFile("video_category");
-    std::string description = settings.readFromSettingsFile("video_description");
-    std::string temp_tags = settings.readFromSettingsFile("video_tags");
-    std::vector<std::string> tags;
-
-    if (temp_tags.length() > 2) {
-        temp_tags = temp_tags.erase(0, 1);
-        temp_tags = temp_tags.erase(temp_tags.length() - 2, 1);
-        tags = splitString(temp_tags, ',');
-    } 
-
-    std::cout << "Insert start of title\n>> ";
-    std::string start_title;
-    std::getline(std::cin, start_title);
-
-    title = start_title + " " + title;
-
-    std::cout << "Uploading video..." << "\n";
-    settings.getYouTubeApi().uploadVideo(PATH + RESULT_PATH + RESULT_FILE_NAME, title, description, category_id, tags);
-    std::cout << "Video uploaded successfully!" << "\n";
-    endProgram();
+    video.appendVideos(clips, PATH + RESULT_FILE_NAME);
 }
 
 void App::choseClips() {

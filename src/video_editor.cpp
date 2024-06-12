@@ -3,7 +3,6 @@
 std::string exec(const char* cmd) {
     std::array<char, 128> buffer;
     std::string result;
-    std::string command = std::string(cmd) + " > /dev/null 2>&1";
     std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(cmd, "r"), pclose);
     if (!pipe) {
         throw std::runtime_error("popen() failed!");
@@ -46,7 +45,7 @@ void VideoEditor::trimVideo(double startMillisecond, double endMillisecond) cons
     std::string endStr = formatTime(endMillisecond);
 
     std::string tempFileName = filePath + "temp_" + fileName;
-    std::string command = "ffmpeg -i " + filePath + fileName + " -ss " + startStr + " -to " + endStr + " -c copy " + tempFileName + + " -y > /dev/null 2>&1";
+    std::string command = "ffmpeg -i " + filePath + fileName + " -ss " + startStr + " -to " + endStr + " -c copy " + tempFileName + " -y";
     int result = system(command.c_str());
     if (result != 0) {
         throw std::runtime_error("Failed to trim video");
@@ -68,19 +67,16 @@ void VideoEditor::appendVideos(const std::vector<VideoEditor>& videos, std::stri
     
     std::ofstream listFile("list.txt");
     listFile << "file '" << filePath + fileName << "'\n";
-
     for (const auto& video : videos) {
         std::string videoPath = video.getFilePath() + video.getFileName();
         if (!std::filesystem::exists(videoPath)) {
-            listFile.close();
-            remove("list.txt");
             throw std::runtime_error("Video file does not exist: " + videoPath);
         }
         listFile << "file '" << videoPath << "'\n";
     }
     listFile.close();
 
-    std::string command = "ffmpeg -f concat -safe 0 -i list.txt -c copy " + outputPath + " -y > ffmpeg_error.txt 2>&1";
+    std::string command = "ffmpeg -f concat -safe 0 -i list.txt -c copy " + outputPath + " -y";
     int result = system(command.c_str());
     if (result != 0) {
         throw std::runtime_error("Failed to append videos");

@@ -15,17 +15,14 @@ class Settings {
     void menu();
     std::vector<std::string> getClipsUrls() {return twitch_con.getTopClipsInTimeSpan(game_id, time_span_hours, clip_amount);};
 
-    TwitchApi getTwitchApi() {return twitch_con;};
-    YouTubeApi getYouTubeApi() {return youtube_con;};
-
    private:
     const std::string encryption_key = "simple_key";
     const std::string settings_file_name = "../settings.txt";
     const int HOURS_IN_DAY = 24;
 
-    std::string game_id;
-    int time_span_hours;
-    int clip_amount;
+    std::string game_id = "32399";
+    int time_span_hours = 7 * 24;
+    int clip_amount = 10;
     TwitchApi twitch_con;
     YouTubeApi youtube_con;
     CredentialEncryption ce;
@@ -41,16 +38,6 @@ class Settings {
     void initSettings(); 
 
     /**
-     * @brief Initializes the API.
-     * 
-     * This function is responsible for initializing the API with the provided `api` object.
-     * 
-     * @param api The API object to be initialized.
-     * @param service The name of the service for which the API is being initialized.
-     */
-    void initApi(Api *api, const std::string& service);
-
-    /**
      * @brief Queries the Twitch API for game information.
      */
     void queryGame();
@@ -64,6 +51,7 @@ class Settings {
      * @brief Queries the user for the desired clip time span.
      */
     void queryClipTimeSpan();
+
     
     /**
      * Queries the credentials for a given service and sets them in the provided API object.
@@ -73,7 +61,6 @@ class Settings {
      */
     void queryCredentials(const std::string& service, Api* api);
 
-   public:
     /**
      * Writes the given key-value pair to the settings file.
      *

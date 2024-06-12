@@ -14,7 +14,6 @@ class App {
 
     const std::string BASE_FILE_NAME = "clip.mp4";
     const std::string PATH = "clips/";
-    const std::string RESULT_PATH = "output/";
     const std::string RESULT_FILE_NAME = "output.mp4";
 
     /**
@@ -52,17 +51,6 @@ class App {
      * @return void
      */
     void buildVideo();
-
-    /**
-     * @brief Uploads a video.
-     * 
-     * This function is responsible for uploading a video to a specified destination.
-     * It handles the necessary steps to upload the video file, such as establishing a connection,
-     * authenticating the user, and transferring the file.
-     * 
-     * @note This function assumes that the video file is already available and accessible.
-     */
-    void uploadVideo();
 
    public:
 

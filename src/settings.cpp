@@ -1,30 +1,16 @@
 #include "settings.hpp"
 
-void Settings::initApi(Api *api, const std::string& service) {
-    std::string access_token = readFromSettingsFile(service + "_access_token");
-    access_token = ce.bitOrDecrypt(access_token, encryption_key);
-
-    std::string client_id = readFromSettingsFile(service + "_client_id");
-    client_id = ce.bitOrDecrypt(client_id, encryption_key);
-
-    api->setAccessToken(access_token);
-    api->setClientId(client_id);
-
-    if (!api->isTokenValid()) {
-        std::string encrypted_secret = readFromSettingsFile(service + "client_secret");
-        if (client_id == "" || encrypted_secret == "") {
-           std::cerr << service + " credentials not found. Please set them in the settings menu.\n";
-           return;
-        }
-        api->setCredentials(client_id, 
-                           ce.bitOrDecrypt(encrypted_secret, encryption_key));
-        writeToSettingsFile(service + "_access_token", api->getAccessToken());
-    }
-}
-
 void Settings::initSettings() {
-    initApi(&twitch_con, "twitch");
-    initApi(&youtube_con, "youtube");
+    std::string encrypted_id = readFromSettingsFile("twitch_client_id");
+    std::string encrypted_secret = readFromSettingsFile("twitch_client_secret");
+
+    twitch_con = TwitchApi(ce.bitOrDecrypt(encrypted_id, encryption_key), 
+                           ce.bitOrDecrypt(encrypted_secret, encryption_key));
+
+    encrypted_id = readFromSettingsFile("youtube_client_id");
+    encrypted_secret = readFromSettingsFile("youtube_client_secret");
+    youtube_con = YouTubeApi(ce.bitOrDecrypt(encrypted_id, encryption_key), 
+                           ce.bitOrDecrypt(encrypted_secret, encryption_key));
 
     game_id = readFromSettingsFile("game_id");
     if (game_id == "") game_id = "32399";
@@ -102,32 +88,30 @@ void Settings::queryClipTimeSpan() {
     writeToSettingsFile("time_span_hours", std::to_string(time_span_hours));
 }
 
-void Settings::queryCredentials(const std::string& service, Api* api) { 
+void Settings::queryCredentials(const std::string& service, Api* api) { // is not generic, should be changed to not for only twitch
     std::string client_id;
     std::string client_secret;
+    bool connection_successful = false;
 
-    Api* temp_api;
     do {
         std::cout << "Enter your " << service << " client ID (x for cancel).\n>> ";
         std::cin >> client_id;
-        if (client_id == "x") { api = temp_api; return; }
+        if (client_id == "x") return;
 
         std::cout << "Enter your " << service << " client secret (x for cancel).\n>> ";
         std::cin >> client_secret;
-        if (client_secret == "x") { api = temp_api; return; }
+        if (client_secret == "x") return;
 
-        temp_api = api;
-        api->setCredentials(client_id, client_secret);
-        std::cout << "Access token: " << api->getAccessToken() << "\n";
-    } while (!api->isTokenValid());
+        connection_successful = api->isCredentialsValid(client_id, client_secret);
+
+    } while (!connection_successful);
+    api->setCredentials(client_id, client_secret);
 
     client_id = ce.bitOrEncrypt(client_id, encryption_key);
     client_secret = ce.bitOrEncrypt(client_secret, encryption_key);
-    std::string access_token = ce.bitOrEncrypt(api->getAccessToken(), encryption_key);
 
     writeToSettingsFile(service + "_client_id", client_id);
     writeToSettingsFile(service + "_client_secret", client_secret);
-    writeToSettingsFile(service + "_access_token", access_token);
 }
 
 void Settings::writeToSettingsFile(const std::string& key, const std::string& value) {
@@ -135,11 +119,7 @@ void Settings::writeToSettingsFile(const std::string& key, const std::string& va
     
     std::ifstream read_file(settings_file_name);
     if (read_file.is_open()) {
-        try {
-            read_file >> j;
-        } catch (nlohmann::json::parse_error&) {
-            j = nlohmann::json::object();
-        }
+        read_file >> j;
         read_file.close();
     } else {
         std::cerr << "Unable to open file for reading: " << settings_file_name << std::endl;
@@ -159,16 +139,14 @@ void Settings::writeToSettingsFile(const std::string& key, const std::string& va
 std::string Settings::readFromSettingsFile(const std::string& key) {
     nlohmann::json j;
     std::string value;
-    checkAndCreateFile(settings_file_name);
     std::ifstream file(settings_file_name);
     if (file) {
-        if (file.peek() != std::ifstream::traits_type::eof()) {
-            file >> j;
-        }
+        file >> j;
         file.close();
     }
+
     try {
-        value = j[key].get<std::string>();
+        value = j[key];
     } catch(const std::exception& e) {
         return "";
     }
