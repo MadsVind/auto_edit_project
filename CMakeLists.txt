@@ -53,7 +53,7 @@ file(GLOB_RECURSE SOURCES "src/*.cpp" "src/**/*.cpp" "include/**/*.cpp")
 add_library(auto_edit_lib ${SOURCES})
 
 # Link the required libraries to the library
-target_link_libraries(auto_edit_lib PRIVATE cpr nlohmann_json::nlohmann_json CURL::libcurl)
+target_link_libraries(auto_edit_lib PUBLIC cpr nlohmann_json::nlohmann_json CURL::libcurl)
 
 # Add an executable that is built from main.cpp
 add_executable(auto_edit main.cpp)
