@@ -59,13 +59,13 @@ file(GLOB_RECURSE SOURCES "src/*.cpp" "src/**/*.cpp" "include/**/*.cpp")
 add_library(auto_edit_lib ${SOURCES})
 
 # Link the required libraries to the library
-target_link_libraries(auto_edit_lib PRIVATE cpr nlohmann_json::nlohmann_json CURL::libcurl)
+target_link_libraries(auto_edit_lib PUBLIC PkgConfig::AVCODEC PkgConfig::AVFORMAT PkgConfig::AVUTIL PkgConfig::AVFILTER cpr nlohmann_json::nlohmann_json CURL::libcurl)
 
 # Add an executable that is built from main.cpp
 add_executable(auto_edit main.cpp)
 
 # Link the library to the executable
-target_link_libraries(auto_edit PRIVATE auto_edit_lib PkgConfig::AVCODEC PkgConfig::AVFORMAT PkgConfig::AVUTIL PkgConfig::AVFILTER)
+target_link_libraries(auto_edit PRIVATE auto_edit_lib)
 
 # Add the test subdirectory
 add_subdirectory(test)
