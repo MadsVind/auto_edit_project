@@ -3,7 +3,11 @@
 
 #include <string>
 #include <vector>
+#include <stdexcept>
+#include <memory>
+#include <iostream>
 #include <filesystem>
+#include <fstream>
 
 extern "C" {
 #include <libavformat/avformat.h>
@@ -23,19 +27,16 @@ extern "C" {
  */
 class VideoEditor {
 private:
-    std::string filePath; /**< The path to the video file. */
-    std::string fileName; /**< The name of the video file. */
+    std::string filePath; /**< The name of the video file. */
 
 public:
     /**
      * @brief Constructs a VideoEditor object with the specified file name.
      * @param fileName The name of the video file.
      */
-    VideoEditor(const std::string& filePath, const std::string& fileName) : filePath(filePath), fileName(fileName) {}
+    VideoEditor(const std::string& filePath) : filePath(filePath) {}
 
-    std::string getFileName() const {return fileName;}
     std::string getFilePath() const {return filePath;}
-
 
     /**
      * @brief Get the length of the video.

@@ -39,9 +39,9 @@ class App {
     /**
      * Edits a video located at the specified path.
      *
-     * @param video_path The path to the video file.
+     * @param file_name The path to the video file.
      */
-    void editVideo(const std::string& video_path);
+    void editVideo(const std::string& file_name);
 
     /**
      * @brief Builds a video.
