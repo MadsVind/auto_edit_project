@@ -60,10 +60,10 @@ void App::buildVideo() {
     checkAndCreateDirectory(PATH);
     checkAndCreateDirectory(PATH + RESULT_PATH);
 
-    std::vector<VideoEditor> clips;
+    std::vector<Video> clips;
     for (const auto& entry : std::filesystem::directory_iterator(PATH)) {
         if (entry.is_regular_file()) {
-            clips.push_back(VideoEditor(entry.path().string()));
+            clips.push_back(Video(entry.path().string()));
         }
     }
 
@@ -72,8 +72,9 @@ void App::buildVideo() {
         return;
     }
 
-    VideoEditor video = clips[0];
+    Video video = clips[0];
     clips.erase(clips.begin());
+
     video.appendVideos(clips, PATH + RESULT_PATH + RESULT_FILE_NAME);
 }
 
@@ -140,9 +141,9 @@ void App::choseClips() {
 
 void App::editVideo(const std::string& file_name) {
     bool cropping = false;
-    VideoEditor temp_video = VideoEditor(PATH + file_name);
+    Video temp_video = Video(PATH + file_name);
     int start_time = 0;
-    int end_time = temp_video.getVideoLength();
+    int end_time = temp_video.getDuration();
     
     std::cout << "Crop the clip, start time in milliseconds\n>> ";
     int temp = queryInt();
@@ -156,5 +157,5 @@ void App::editVideo(const std::string& file_name) {
         end_time = temp;
         cropping = true;
     }
-    if (cropping) temp_video.trimVideo(start_time, end_time);
+    if (cropping) temp_video.trimVideo(start_time, end_time, PATH + file_name);
 }

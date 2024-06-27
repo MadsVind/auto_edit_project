@@ -1,7 +1,7 @@
 #ifndef APP_HPP
 #define APP_HPP
 
-#include <video_editor.hpp>
+#include <video.hpp>
 #include <thread>
 #include <settings.hpp>
 
