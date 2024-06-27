@@ -19,8 +19,7 @@ int main() {
     videos.push_back(video2);
     videos.push_back(video3);
 
-    //video.trimVideo(0, 1000, "/home/vind/auto_edit_project/test/unit/test_videos/temp_example1.mp4");
-    video1.appendVideos(videos, "/home/vind/auto_edit_project/test/unit/test_videos/temp_example2.mp4");
-    //video.example_usage();
+    video1.trimVideo(0000, 1000, "/home/vind/auto_edit_project/test/unit/test_videos/temp_example1.mp4");
+    //video1.appendVideos(videos, "/home/vind/auto_edit_project/test/unit/test_videos/temp_example2.mp4");
     return 0;
 }

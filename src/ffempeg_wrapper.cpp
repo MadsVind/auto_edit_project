@@ -79,38 +79,53 @@ int addPacketsToOutput(AVFormatContext* inFmtCtx, AVFormatContext* outFmtCtx,
                        int64_t trim_start_millisec, int64_t trim_end_millisec) {
 
     AVPacket pkt;
-    bool is_trimmed = (trim_start_millisec > 0 || trim_end_millisec > 0);
     uint64_t temp_video_pts = 0;
     uint64_t temp_audio_pts = 0;
+
+    bool is_video_over_trim = false;
+    bool is_audio_over_trim = false;
+
     while (av_read_frame(inFmtCtx, &pkt) >= 0) {
         // Copy packet
         AVStream *in_stream, *out_stream;
         in_stream = inFmtCtx->streams[pkt.stream_index];
         out_stream = outFmtCtx->streams[pkt.stream_index];
+        const AVCodecDescriptor* codec_desc = avcodec_descriptor_get(out_stream->codecpar->codec_id);
 
-        AVCodecParameters* codec_params = out_stream->codecpar;
-        const AVCodecDescriptor* codec_desc = avcodec_descriptor_get(codec_params->codec_id);
+        uint64_t current_duration = (av_q2d(out_stream->time_base) * pkt.pts) * 1000;
+        if ((current_duration < trim_start_millisec && trim_start_millisec > 0)) {
+            av_packet_unref(&pkt);
+            if (codec_desc->type == AVMEDIA_TYPE_VIDEO) *last_video_pts = pkt.pts;
+            if (codec_desc->type == AVMEDIA_TYPE_AUDIO) *last_audio_pts = pkt.pts;
+            std::cout << "pts: " << pkt.pts  << "  last video pts: " << *last_video_pts << "  last audio pts: " << *last_audio_pts << std::endl;
+            continue;
+        }
+
         if (last_video_pts != nullptr && codec_desc->type == AVMEDIA_TYPE_VIDEO) {
             pkt.pts = av_rescale_q_rnd(pkt.pts + 1, in_stream->time_base, out_stream->time_base, AV_ROUND_NEAR_INF) + *last_video_pts;
             pkt.dts = av_rescale_q_rnd(pkt.dts + 1, in_stream->time_base, out_stream->time_base, AV_ROUND_NEAR_INF) + *last_video_pts;
-            temp_video_pts = pkt.pts; // Update after rescaling and offset adjustment
+            if (!is_video_over_trim) temp_video_pts = pkt.pts; // Update after rescaling and offset adjustment
         }
         else if (last_audio_pts != nullptr && codec_desc->type == AVMEDIA_TYPE_AUDIO) {
             pkt.pts = av_rescale_q_rnd(pkt.pts + 1, in_stream->time_base, out_stream->time_base, AV_ROUND_NEAR_INF) + *last_audio_pts;
             pkt.dts = av_rescale_q_rnd(pkt.dts + 1, in_stream->time_base, out_stream->time_base, AV_ROUND_NEAR_INF) + *last_audio_pts;
-            temp_audio_pts = pkt.pts; // Update after rescaling and offset adjustment
+            if (!is_audio_over_trim) temp_audio_pts = pkt.pts; // Update after rescaling and offset adjustment
         }
-        //std::cout << "pts: " << pkt.pts  << "  Adding packet to stream index: " << pkt.stream_index;
-        //if (codec_desc) std::cout << ", Codec: " << codec_desc->name;
-        //std::cout << std::endl;
-        if (is_trimmed && (av_q2d(in_stream->time_base) * pkt.pts) * 1000  > trim_end_millisec) {
-            av_packet_unref(&pkt);
-            break;
-        }
-        
+        current_duration = (av_q2d(out_stream->time_base) * pkt.pts) * 1000;
         pkt.duration = av_rescale_q(pkt.duration, in_stream->time_base, out_stream->time_base);
         pkt.pos = -1;
+        std::cout << "current_duration: " << current_duration << " trim_end " << trim_end_millisec << " trim_start " << trim_start_millisec << std::endl;
+        if ((current_duration > trim_end_millisec && trim_end_millisec > 0)) {
+            av_packet_unref(&pkt);
+            if (is_audio_over_trim && is_video_over_trim) break; 
+            if (codec_desc->type == AVMEDIA_TYPE_VIDEO) is_video_over_trim = true;
+            if (codec_desc->type == AVMEDIA_TYPE_AUDIO) is_audio_over_trim = true;
+            continue;
+        } 
 
+        std::cout << "pts: " << pkt.pts  << "  Adding packet to stream index: " << pkt.stream_index;
+        if (codec_desc) std::cout << ", Codec: " << codec_desc->name;
+        std::cout << std::endl;
         // Write packet
         if (av_interleaved_write_frame(outFmtCtx, &pkt) < 0) {
             std::cerr << "Error muxing packet\n";

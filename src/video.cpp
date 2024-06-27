@@ -33,7 +33,10 @@ void Video::trimVideo(const double start_millisecond, const double end_milliseco
     initOutputContext(temp_output_path, &out_format_ctx);
     copyStreamParameters(video_format_ctx, out_format_ctx);
     initOutputFile(temp_output_path, out_format_ctx);
-    addPacketsToOutput(video_format_ctx, out_format_ctx, nullptr, nullptr, start_millisecond, end_millisecond);
+    
+    uint64_t last_video_pts = 0;
+    uint64_t last_audio_pts = 0;
+    addPacketsToOutput(video_format_ctx, out_format_ctx, &last_video_pts, &last_audio_pts, start_millisecond, end_millisecond);
     av_write_trailer(out_format_ctx);
     // Cleanup
     if (!(out_format_ctx->oformat->flags & AVFMT_NOFILE))
