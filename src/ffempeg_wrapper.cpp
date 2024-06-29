@@ -77,6 +77,7 @@ void addStreamPacketsToOutput(std::vector<AVPacket> packets, bool is_trim_start,
                              int64_t start_time, int64_t trim_end_millisec, 
                              AVFormatContext* out_format_context, AVStream* out_stream, 
                              int64_t* last_pts, int64_t *temp_pts) {
+                                
     for (auto pkt : packets) {
         int64_t current_time = (av_q2d(out_stream->time_base) * pkt.pts) * 1000;
 
