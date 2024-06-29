@@ -129,11 +129,8 @@ int addPacketsToOutput(AVFormatContext* in_format_context, AVFormatContext* out_
         AVStream *out_stream = out_format_context->streams[pkt.stream_index];
         const AVCodecDescriptor* codec_desc = avcodec_descriptor_get(out_stream->codecpar->codec_id);
 
-        bool is_video = codec_desc->type == AVMEDIA_TYPE_VIDEO;
-        bool is_audio = codec_desc->type == AVMEDIA_TYPE_AUDIO;
-
-        if (is_video && out_video_stream == nullptr) out_video_stream = out_stream;
-        if (is_audio && out_audio_stream == nullptr) out_audio_stream = out_stream;
+        if (codec_desc->type == AVMEDIA_TYPE_VIDEO && out_video_stream == nullptr) out_video_stream = out_stream;
+        if (codec_desc->type == AVMEDIA_TYPE_AUDIO && out_audio_stream == nullptr) out_audio_stream = out_stream;
         
         pkt.pts = av_rescale_q_rnd(pkt.pts + 1, in_stream->time_base, out_stream->time_base, AV_ROUND_NEAR_INF);
         pkt.dts = av_rescale_q_rnd(pkt.dts + 1, in_stream->time_base, out_stream->time_base, AV_ROUND_NEAR_INF);
