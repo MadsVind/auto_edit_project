@@ -34,8 +34,8 @@ void Video::trimVideo(const double start_millisecond, const double end_milliseco
     copyStreamParameters(video_format_ctx, out_format_ctx);
     initOutputFile(temp_output_path, out_format_ctx);
     
-    uint64_t last_video_pts = 0;
-    uint64_t last_audio_pts = 0;
+    int64_t last_video_pts = 0;
+    int64_t last_audio_pts = 0;
     addPacketsToOutput(video_format_ctx, out_format_ctx, &last_video_pts, &last_audio_pts, start_millisecond, end_millisecond);
     av_write_trailer(out_format_ctx);
     // Cleanup
@@ -68,8 +68,8 @@ void Video::appendVideos(const std::vector<Video>& videos, const std::string& ou
     copyStreamParameters(format_ctx_list[0], out_format_ctx, &video_stream_index, &audio_stream_index);
     initOutputFile(temp_output_path, out_format_ctx);
     
-    uint64_t last_video_pts = 0;
-    uint64_t last_audio_pts = 0;
+    int64_t last_video_pts = 0;
+    int64_t last_audio_pts = 0;
     addPacketsToOutput(format_ctx_list[0], out_format_ctx, 
                        &last_video_pts, &last_audio_pts); 
 

@@ -73,9 +73,9 @@ int copyStreamParameters(AVFormatContext* inFmtCtx, AVFormatContext* outFmtCtx) 
     return copyStreamParameters(inFmtCtx, outFmtCtx, (new int), (new int));
 }
 
-// !!! Does not yet trim start !!!
-int addPacketsToOutput(AVFormatContext* inFmtCtx, AVFormatContext* outFmtCtx, 
-                       uint64_t* last_video_pts, uint64_t* last_audio_pts,
+// !!! Does not yet trim start !!! needs to be simplyfied
+int addPacketsToOutput(AVFormatContext* in_format_context, AVFormatContext* out_format_context, 
+                       int64_t* last_video_pts, int64_t* last_audio_pts,
                        int64_t trim_start_millisec, int64_t trim_end_millisec) {
 
     AVPacket pkt;
@@ -85,49 +85,61 @@ int addPacketsToOutput(AVFormatContext* inFmtCtx, AVFormatContext* outFmtCtx,
     bool is_video_over_trim = false;
     bool is_audio_over_trim = false;
 
-    while (av_read_frame(inFmtCtx, &pkt) >= 0) {
-        // Copy packet
-        AVStream *in_stream, *out_stream;
-        in_stream = inFmtCtx->streams[pkt.stream_index];
-        out_stream = outFmtCtx->streams[pkt.stream_index];
+    bool is_trim_start = trim_start_millisec > 0;
+    bool is_trim_end = trim_end_millisec > 0;
+
+    bool first_keyframe_found = false;
+
+    while (av_read_frame(in_format_context, &pkt) >= 0) {
+        AVStream *in_stream = in_format_context->streams[pkt.stream_index];
+        AVStream *out_stream = out_format_context->streams[pkt.stream_index];
         const AVCodecDescriptor* codec_desc = avcodec_descriptor_get(out_stream->codecpar->codec_id);
 
-        uint64_t current_duration = (av_q2d(out_stream->time_base) * pkt.pts) * 1000;
-        if ((current_duration < trim_start_millisec && trim_start_millisec > 0)) {
-            av_packet_unref(&pkt);
-            if (codec_desc->type == AVMEDIA_TYPE_VIDEO) *last_video_pts = pkt.pts;
-            if (codec_desc->type == AVMEDIA_TYPE_AUDIO) *last_audio_pts = pkt.pts;
-            std::cout << "pts: " << pkt.pts  << "  last video pts: " << *last_video_pts << "  last audio pts: " << *last_audio_pts << std::endl;
-            continue;
-        }
+        bool is_video = codec_desc->type == AVMEDIA_TYPE_VIDEO;
+        bool is_audio = codec_desc->type == AVMEDIA_TYPE_AUDIO;
 
-        if (last_video_pts != nullptr && codec_desc->type == AVMEDIA_TYPE_VIDEO) {
-            pkt.pts = av_rescale_q_rnd(pkt.pts + 1, in_stream->time_base, out_stream->time_base, AV_ROUND_NEAR_INF) + *last_video_pts;
-            pkt.dts = av_rescale_q_rnd(pkt.dts + 1, in_stream->time_base, out_stream->time_base, AV_ROUND_NEAR_INF) + *last_video_pts;
-            if (!is_video_over_trim) temp_video_pts = pkt.pts; // Update after rescaling and offset adjustment
-        }
-        else if (last_audio_pts != nullptr && codec_desc->type == AVMEDIA_TYPE_AUDIO) {
-            pkt.pts = av_rescale_q_rnd(pkt.pts + 1, in_stream->time_base, out_stream->time_base, AV_ROUND_NEAR_INF) + *last_audio_pts;
-            pkt.dts = av_rescale_q_rnd(pkt.dts + 1, in_stream->time_base, out_stream->time_base, AV_ROUND_NEAR_INF) + *last_audio_pts;
-            if (!is_audio_over_trim) temp_audio_pts = pkt.pts; // Update after rescaling and offset adjustment
-        }
-        current_duration = (av_q2d(out_stream->time_base) * pkt.pts) * 1000;
-        pkt.duration = av_rescale_q(pkt.duration, in_stream->time_base, out_stream->time_base);
-        pkt.pos = -1;
-        std::cout << "current_duration: " << current_duration << " trim_end " << trim_end_millisec << " trim_start " << trim_start_millisec << std::endl;
-        if ((current_duration > trim_end_millisec && trim_end_millisec > 0)) {
+        pkt.pts = av_rescale_q_rnd(pkt.pts + 1, in_stream->time_base, out_stream->time_base, AV_ROUND_NEAR_INF);
+        pkt.dts = av_rescale_q_rnd(pkt.dts + 1, in_stream->time_base, out_stream->time_base, AV_ROUND_NEAR_INF);
+
+        uint64_t current_duration = (av_q2d(out_stream->time_base) * pkt.pts) * 1000; 
+
+
+        /**
+         * problem is that first frame is not a keyframe, there is only 2 keyframes in example video
+         * find out how to encode
+         * 
+         * ez solution is to save all pts durations after first video keyframe and then add to output, 
+         * but will have to be added to vector since the stream is not garenteed to be video first.
+         */
+        if (is_trim_start && (current_duration < trim_start_millisec) || first_keyframe_found && !(pkt.flags == 1)) {                                                                                       
+            if (is_audio) *last_audio_pts = -pkt.pts;
+            if (is_video) *last_video_pts = -pkt.pts;
             av_packet_unref(&pkt);
-            if (is_audio_over_trim && is_video_over_trim) break; 
-            if (codec_desc->type == AVMEDIA_TYPE_VIDEO) is_video_over_trim = true;
-            if (codec_desc->type == AVMEDIA_TYPE_AUDIO) is_audio_over_trim = true;
             continue;
         } 
 
-        std::cout << "pts: " << pkt.pts  << "  Adding packet to stream index: " << pkt.stream_index;
-        if (codec_desc) std::cout << ", Codec: " << codec_desc->name;
-        std::cout << std::endl;
+        
+        int offset = (is_video) ? *last_video_pts : *last_audio_pts;
+        pkt.pts = pkt.pts + offset;
+        pkt.dts = pkt.dts + offset;
+
+        if      (is_video && !is_video_over_trim) temp_video_pts = pkt.pts; 
+        else if (is_audio && !is_audio_over_trim) temp_audio_pts = pkt.pts;
+
+
+        current_duration = (av_q2d(out_stream->time_base) * pkt.pts) * 1000;
+        pkt.duration = av_rescale_q(pkt.duration, in_stream->time_base, out_stream->time_base);
+        pkt.pos = -1;
+        if (is_trim_end && (current_duration > trim_end_millisec)) {
+            av_packet_unref(&pkt);
+            if (is_audio_over_trim && is_video_over_trim) break; 
+            if (is_video) is_video_over_trim = true;
+            if (is_audio) is_audio_over_trim = true;
+            continue;
+        } 
+
         // Write packet
-        if (av_interleaved_write_frame(outFmtCtx, &pkt) < 0) {
+        if (av_interleaved_write_frame(out_format_context, &pkt) < 0) {
             std::cerr << "Error muxing packet\n";
             break;
         }
@@ -135,7 +147,5 @@ int addPacketsToOutput(AVFormatContext* inFmtCtx, AVFormatContext* outFmtCtx,
     }
     *last_video_pts = temp_video_pts;
     *last_audio_pts = temp_audio_pts;
-    std::cout << "Finished adding packets to output: temp video:audio  " << temp_video_pts << "  :  " << temp_audio_pts << "\n" ;
     return 0;
 }
-
