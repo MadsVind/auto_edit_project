@@ -36,6 +36,7 @@ public:
 
     /**
      * @brief Appends multiple videos to the current video.
+     * ! Does not work for incompatible video formats. (File type, codec, scale, etc.) 
      * @param videos The vector of VideoEditor objects to be appended.
      * @param output_path The output path of the appended video.
      */
@@ -43,6 +44,7 @@ public:
 
     /**
      * @brief Appends a single video to the current video.
+     * !Does not work for incompatible video formats. (File type, codec, scale, etc.)
      * @param video The VideoEditor object to be appended.
      * @param output_path The output path of the appended video.
      */

@@ -12,6 +12,9 @@ std::filesystem::path video_path_non = currentDir / "test_videos" / "nonexample.
 std::filesystem::path output_path = currentDir / "test_videos" / "output.mp4";
 
 // !!! Test appending the same video object upon itself And multiple appends
+// !!! Test appending videos with different codecs
+// !!! Test appending videos with different resolutions
+// !!! Test appending videos with different frame rates
 TEST_CASE("Video trims and appends videos correctly", "[Video]") {
     Video video1(video_path_1);
     Video video2(video_path_2);

@@ -4,6 +4,7 @@
 #include <iostream>
 #include <memory>
 #include <string>
+#include <vector>
 
 extern "C" {
 #include <libavformat/avformat.h>

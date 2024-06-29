@@ -20,7 +20,7 @@ int64_t Video::getDuration() const {
     avformat_close_input(&video_format_ctx);
 }
 
-// !!! Does not yet trim start !!!
+//!!! Does not replace the original video file if == output_path
 void Video::trimVideo(const double start_millisecond, const double end_millisecond, const std::string& output_path) {
     AVFormatContext* out_format_ctx = nullptr;
     AVFormatContext* video_format_ctx = nullptr;

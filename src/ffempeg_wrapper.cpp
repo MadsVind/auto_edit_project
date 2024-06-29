@@ -73,69 +73,28 @@ int copyStreamParameters(AVFormatContext* inFmtCtx, AVFormatContext* outFmtCtx) 
     return copyStreamParameters(inFmtCtx, outFmtCtx, (new int), (new int));
 }
 
-// !!! Does not yet trim start !!! needs to be simplyfied
-int addPacketsToOutput(AVFormatContext* in_format_context, AVFormatContext* out_format_context, 
-                       int64_t* last_video_pts, int64_t* last_audio_pts,
-                       int64_t trim_start_millisec, int64_t trim_end_millisec) {
+void addStreamPacketsToOutput(std::vector<AVPacket> packets, bool is_trim_start, bool is_trim_end, 
+                             int64_t start_time, int64_t trim_end_millisec, 
+                             AVFormatContext* out_format_context, AVStream* out_stream, 
+                             int64_t* last_pts, int64_t *temp_pts) {
+    for (auto pkt : packets) {
+        int64_t current_time = (av_q2d(out_stream->time_base) * pkt.pts) * 1000;
 
-    AVPacket pkt;
-    uint64_t temp_video_pts = 0;
-    uint64_t temp_audio_pts = 0;
-
-    bool is_video_over_trim = false;
-    bool is_audio_over_trim = false;
-
-    bool is_trim_start = trim_start_millisec > 0;
-    bool is_trim_end = trim_end_millisec > 0;
-
-    bool first_keyframe_found = false;
-
-    while (av_read_frame(in_format_context, &pkt) >= 0) {
-        AVStream *in_stream = in_format_context->streams[pkt.stream_index];
-        AVStream *out_stream = out_format_context->streams[pkt.stream_index];
-        const AVCodecDescriptor* codec_desc = avcodec_descriptor_get(out_stream->codecpar->codec_id);
-
-        bool is_video = codec_desc->type == AVMEDIA_TYPE_VIDEO;
-        bool is_audio = codec_desc->type == AVMEDIA_TYPE_AUDIO;
-
-        pkt.pts = av_rescale_q_rnd(pkt.pts + 1, in_stream->time_base, out_stream->time_base, AV_ROUND_NEAR_INF);
-        pkt.dts = av_rescale_q_rnd(pkt.dts + 1, in_stream->time_base, out_stream->time_base, AV_ROUND_NEAR_INF);
-
-        uint64_t current_duration = (av_q2d(out_stream->time_base) * pkt.pts) * 1000; 
-
-
-        /**
-         * problem is that first frame is not a keyframe, there is only 2 keyframes in example video
-         * find out how to encode
-         * 
-         * ez solution is to save all pts durations after first video keyframe and then add to output, 
-         * but will have to be added to vector since the stream is not garenteed to be video first.
-         */
-        if (is_trim_start && (current_duration < trim_start_millisec) || first_keyframe_found && !(pkt.flags == 1)) {                                                                                       
-            if (is_audio) *last_audio_pts = -pkt.pts;
-            if (is_video) *last_video_pts = -pkt.pts;
+        if (is_trim_start && current_time < start_time) {                                                                                       
+           *last_pts = -pkt.pts;
             av_packet_unref(&pkt);
             continue;
         } 
 
-        
-        int offset = (is_video) ? *last_video_pts : *last_audio_pts;
-        pkt.pts = pkt.pts + offset;
-        pkt.dts = pkt.dts + offset;
+        pkt.pts = pkt.pts + *last_pts;
+        pkt.dts = pkt.dts + *last_pts;
 
-        if      (is_video && !is_video_over_trim) temp_video_pts = pkt.pts; 
-        else if (is_audio && !is_audio_over_trim) temp_audio_pts = pkt.pts;
-
-
-        current_duration = (av_q2d(out_stream->time_base) * pkt.pts) * 1000;
-        pkt.duration = av_rescale_q(pkt.duration, in_stream->time_base, out_stream->time_base);
-        pkt.pos = -1;
-        if (is_trim_end && (current_duration > trim_end_millisec)) {
+        current_time = (av_q2d(out_stream->time_base) * pkt.pts) * 1000;
+    
+        *temp_pts = pkt.pts; 
+        if (is_trim_end && (current_time > trim_end_millisec)) {
             av_packet_unref(&pkt);
-            if (is_audio_over_trim && is_video_over_trim) break; 
-            if (is_video) is_video_over_trim = true;
-            if (is_audio) is_audio_over_trim = true;
-            continue;
+            break;
         } 
 
         // Write packet
@@ -145,7 +104,70 @@ int addPacketsToOutput(AVFormatContext* in_format_context, AVFormatContext* out_
         }
         av_packet_unref(&pkt);
     }
+}
+
+// !!! Does not yet trim start !!! needs to be simplyfied
+int addPacketsToOutput(AVFormatContext* in_format_context, AVFormatContext* out_format_context, 
+                       int64_t* last_video_pts, int64_t* last_audio_pts,
+                       int64_t start_time_ms, int64_t end_time_ms) {
+
+    AVPacket pkt;
+    std::vector<AVPacket> video_packets;
+    std::vector<AVPacket> audio_packets;
+
+    int64_t temp_video_pts = 0;
+    int64_t temp_audio_pts = 0;
+
+    bool is_trim_start = start_time_ms > 0;
+    bool is_trim_end = end_time_ms > 0;
+
+    AVStream *out_video_stream = nullptr; 
+    AVStream *out_audio_stream = nullptr; 
+
+    while (av_read_frame(in_format_context, &pkt) >= 0) {
+        AVStream *in_stream = in_format_context->streams[pkt.stream_index];
+        AVStream *out_stream = out_format_context->streams[pkt.stream_index];
+        const AVCodecDescriptor* codec_desc = avcodec_descriptor_get(out_stream->codecpar->codec_id);
+
+        bool is_video = codec_desc->type == AVMEDIA_TYPE_VIDEO;
+        bool is_audio = codec_desc->type == AVMEDIA_TYPE_AUDIO;
+
+        if (is_video && out_video_stream == nullptr) out_video_stream = out_stream;
+        if (is_audio && out_audio_stream == nullptr) out_audio_stream = out_stream;
+        
+        pkt.pts = av_rescale_q_rnd(pkt.pts + 1, in_stream->time_base, out_stream->time_base, AV_ROUND_NEAR_INF);
+        pkt.dts = av_rescale_q_rnd(pkt.dts + 1, in_stream->time_base, out_stream->time_base, AV_ROUND_NEAR_INF);
+        pkt.duration = av_rescale_q(pkt.duration, in_stream->time_base, out_stream->time_base);
+        pkt.pos = -1;
+
+        if      (codec_desc->type == AVMEDIA_TYPE_VIDEO) video_packets.push_back(pkt);
+        else if (codec_desc->type == AVMEDIA_TYPE_AUDIO) audio_packets.push_back(pkt);
+        else av_packet_unref(&pkt);
+    }
+
+    int64_t start_time_keyframe = -1;
+
+    for (AVPacket pkt : video_packets) {
+        int64_t current_time = (av_q2d(out_video_stream->time_base) * pkt.pts) * 1000;
+        if (pkt.flags == 1) start_time_keyframe = current_time;
+        if (current_time > start_time_ms) break;  
+    }
+
+    addStreamPacketsToOutput(video_packets, 
+                             is_trim_start, is_trim_end, 
+                             start_time_keyframe, end_time_ms, 
+                             out_format_context, out_video_stream, 
+                             last_video_pts, &temp_video_pts);
+                             
+    addStreamPacketsToOutput(audio_packets, 
+                             is_trim_start, is_trim_end, 
+                             start_time_keyframe, end_time_ms, 
+                             out_format_context, out_audio_stream, 
+                             last_audio_pts, &temp_audio_pts);
+
     *last_video_pts = temp_video_pts;
     *last_audio_pts = temp_audio_pts;
+    std::cout << "last_video_pts: " << *last_video_pts << std::endl;
+    std::cout << "last_audio_pts: " << *last_audio_pts << std::endl;
     return 0;
 }
